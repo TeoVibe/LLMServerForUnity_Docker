@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  undreamai_server:
+    image: teocholakov/undream_server:llama3b8q
+    container_name: undreamai_server
+    command:
+      - "./undreamai_server"
+      - "-m"
+      - "${MODEL_FILE}"
+      - "--host"
+      - "${HOST}"
+      - "--port"
+      - "${PORT}"
+      - "-ngl"
+      - "${NGL}"
+      - "-np"
+      - "${NP}"
+      - "--template"
+      - "${TEMPLATE}"
+    environment:
+      - ENV_VAR_NAME=env_var_value
+    ports:
+      - "${PORT}:${PORT}"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
