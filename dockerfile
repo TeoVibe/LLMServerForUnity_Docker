@@ -11,11 +11,6 @@ COPY . /app
 RUN apt-get update && apt-get install -y \
     libstdc++6 \
     libgomp1 \
-    net-tools \
-    curl \
     && rm -rf /var/lib/apt/lists/*
-
-# Expose the port the server will listen on
-EXPOSE 1337
 
 
