@@ -2,12 +2,12 @@ version: '3.9'
 
 services:
   undreamai_server:
-    image: teocholakov/undream_server:llama3b8q
+    image: teocholakov/undream_server:linux-cuda12.2.0
     container_name: undreamai_server
     command:
       - "./undreamai_server"
       - "-m"
-      - "${MODEL_FILE}"
+      - "models/${MODEL_FILE}"
       - "--host"
       - "${HOST}"
       - "--port"
@@ -18,10 +18,13 @@ services:
       - "${NP}"
       - "--template"
       - "${TEMPLATE}"
-    environment:
-      - ENV_VAR_NAME=env_var_value
+    # environment:
+    #   - API_KEY=${API_KEY}
     ports:
       - "${PORT}:${PORT}"
+    volumes:
+      - ../models:/app/models 
+
     deploy:
       resources:
         reservations:
@@ -29,4 +32,3 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-
