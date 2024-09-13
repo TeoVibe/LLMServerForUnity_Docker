@@ -23,7 +23,7 @@ services:
     ports:
       - "${PORT}:${PORT}"
     volumes:
-      - ../models:/app/models 
+      - ./models:/app/models 
 
     deploy:
       resources:
