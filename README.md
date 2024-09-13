@@ -15,4 +15,5 @@ Images with the models can be found [here](https://hub.docker.com/r/teocholakov/
 
 To do:
 - create default image for all linux architectures
+- add all flags as env variables
 - create and test image for serverless deployments
