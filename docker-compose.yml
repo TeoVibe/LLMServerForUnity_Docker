@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   undreamai_server:
-    image: teocholakov/undream_server:linux-cuda12.2.0
+    image: teocholakov/undream_server:${VERSION}
     container_name: undreamai_server
     command:
       - "./undreamai_server"
