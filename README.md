@@ -8,6 +8,8 @@ Aiming to containerize the UndreamAI Unity LLM Server and prepare it for scalabl
 
 [New to RunPod? Here's my referral link!](https://runpod.io?ref=muhg2w55)
 
+
+
 Docker-Compose Setup:
 
 1) Download a .gguf of your desired model into /models
@@ -19,9 +21,3 @@ You can find quantized Meta-Llama-3-8B models [here](https://huggingface.co/lmst
 3) docker-compose up
 
 Images with the models can be found [here](https://hub.docker.com/r/teocholakov/undream_server/tags)
-
-
-To do:
-- create default image for all linux architectures
-- add all flags as env variables
-- create and test image for serverless deployments
