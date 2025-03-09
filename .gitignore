@@ -1,4 +1,3 @@
-build
-models/*
+docker-compose/models/*
 !models/
 !models/.gitkeep

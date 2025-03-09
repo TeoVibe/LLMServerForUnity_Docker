@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  undreamai_server:
+    image: teocholakov/undream_server:${VERSION}
+    container_name: undreamai_server
+    command:
+      - "./undreamai_server"
+      - "-m"
+      - "models/${MODEL_FILE}"
+      - "--host"
+      - "${HOST}"
+      - "--port"
+      - "${PORT}"
+      - "-ngl"
+      - "${NGL}"
+      - "-np"
+      - "${NP}"
+      - "--template"
+      - "${TEMPLATE}"
+    # environment:
+    #   - API_KEY=${API_KEY}
+    ports:
+      - "${PORT}:${PORT}"
+    volumes:
+      - ./models:/app/models 
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: ${DRIVER}
+              count: all
+              capabilities: [gpu]
