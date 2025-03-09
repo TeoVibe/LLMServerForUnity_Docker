@@ -1,6 +1,14 @@
-Aiming to containerize the UndreamAI Server from [here](https://github.com/undreamai/LlamaLib) and prepare it for serverless deployments. 
+Aiming to containerize the UndreamAI Unity LLM Server and prepare it for scalable deployments both self-hosted and in the cloud.
 
-Setup:
+[UndreamAI LLM For Unity in the Asset Store](https://assetstore.unity.com/packages/tools/ai-ml-integration/llm-for-unity-273604)
+
+[UndreamAI LLM Server for Unity Github Repo](https://github.com/undreamai/LlamaLib)
+
+[RunPod template for plug and play remote server deployments](https://www.runpod.io/console/explore/cgknslt3bl)
+
+
+
+Docker-Compose Setup:
 
 1) Download a .gguf of your desired model into /models
 
