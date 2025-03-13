@@ -1,3 +1,5 @@
 docker-compose/models/*
 !models/
 !models/.gitkeep
+**/libundreamai_linux-cuda-cu12.2.0.so
+**/undreamai_server
