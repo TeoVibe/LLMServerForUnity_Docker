@@ -29,6 +29,16 @@ WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm install
 
+COPY undreamai-v1.1.10-llamacpp.zip \
+     undreamai-v1.1.10-server.zip \
+     undreamai-v1.1.10-llamacpp-full.zip \
+     /app/
+
+RUN mkdir server && \
+    unzip /app/undreamai-v1.1.10-llamacpp.zip -d /app/server/ && \
+    unzip /app/undreamai-v1.1.10-server.zip -d /app/server/ && \
+    unzip /app/undreamai-v1.1.10-llamacpp-full.zip -d /app/server/ && \
+    rm /app/undreamai-v1.1.10-llamacpp.zip /app/undreamai-v1.1.10-server.zip /app/undreamai-v1.1.10-llamacpp-full.zip
 
 # ==================
 # Application

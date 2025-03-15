@@ -1,6 +1,6 @@
 import threading
 import time
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 import subprocess
 import psutil
@@ -20,9 +20,15 @@ app.add_middleware(
 
 server_process = None
 
+# -----------------------
+# Start Server Endpoint
+# -----------------------
 @app.post("/start-server/")
-async def start_server(params: dict):
+async def start_server(request: Request):
     global server_process
+
+    params = await request.json()
+    custom_params = params.get("custom_params", "").strip()
 
     if server_process and server_process.poll() is None:
         raise HTTPException(status_code=400, detail="Server is already running.")
@@ -42,38 +48,27 @@ async def start_server(params: dict):
         "--template", params.get("template", "chatml")
     ]
 
+    # Append custom params if provided
+    if custom_params:
+        command.extend(custom_params.split())
+
     print(f"➡️ Starting command: {' '.join(command)}")
 
     with open(log_file, "w") as log:
-        try:
-            server_process = subprocess.Popen(
-                command,
-                stdout=log,
-                stderr=log,
-                cwd="/app",
-                preexec_fn=os.setpgrp  # Ensures process gets its own process group
-            )
-
-            # Introduce a background thread to handle zombie cleanup
-            def reap_zombies():
-                while True:
-                    try:
-                        pid, status = os.waitpid(-1, os.WNOHANG)
-                        if pid == 0:
-                            time.sleep(1)
-                    except ChildProcessError:
-                        break
-
-            threading.Thread(target=reap_zombies, daemon=True).start()
-
-        except Exception as e:
-            print(f"❌ Error starting server: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+        server_process = subprocess.Popen(
+            command,
+            stdout=log,
+            stderr=log,
+            cwd="/app",
+            preexec_fn=os.setpgrp
+        )
 
     return {"status": "Server started successfully", "log_file": log_file}
 
 
+# -----------------------
 # Model Download Endpoint
+# -----------------------
 @app.post("/download-model/")
 async def download_model(data: dict):
     model_url = data.get("url")
@@ -91,11 +86,26 @@ async def download_model(data: dict):
     
     return {"status": "Model downloaded successfully"}
 
+# -----------------------
 # Server Stats Endpoint
+# -----------------------
 @app.get("/stats/")
 async def get_stats():
+    global server_process
     return {
         "cpu": psutil.cpu_percent(),
         "ram": psutil.virtual_memory().percent,
-        "gpu": 0
+        "gpu": 0,
+        "server_running": server_process and server_process.poll() is None
     }
+
+# -----------------------
+# Log Viewing Endpoint
+# -----------------------
+@app.get("/logs/")
+async def get_logs():
+    try:
+        with open("/app/server_logs.txt", "r") as log_file:
+            return log_file.read()
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Log file not found")
