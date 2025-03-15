@@ -20,6 +20,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs
 
+RUN mkdir server && \
+    unzip /app/undreamai-v1.1.10-llamacpp.zip -d /app/server/ && \
+    unzip /app/undreamai-v1.1.10-server.zip -d /app/server/ && \
+    unzip /app/undreamai-v1.1.10-llamacpp-full.zip -d /app/server/
+
 RUN mkdir -p /models
 
 WORKDIR /app/backend
