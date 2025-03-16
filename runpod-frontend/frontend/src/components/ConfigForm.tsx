@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 const ConfigForm = () => {
     const [model, setModel] = useState('model');
+    const [availableModels, setAvailableModels] = useState<string[]>([]);
     const [host, setHost] = useState('0.0.0.0');
     const [port, setPort] = useState(1337);
     const [ngl, setNgl] = useState(30);
@@ -11,7 +12,7 @@ const ConfigForm = () => {
     const [logs, setLogs] = useState('');
     const [activeTab, setActiveTab] = useState<'config' | 'logs'>('config');
 
-    // Poll for server status
+    // 1) Poll for server status every 3s
     useEffect(() => {
         const checkStatus = async () => {
             try {
@@ -24,11 +25,11 @@ const ConfigForm = () => {
         };
 
         const interval = setInterval(checkStatus, 3000);
-        checkStatus();
+        checkStatus(); // Check once immediately
         return () => clearInterval(interval);
     }, []);
 
-    // Auto-refresh logs when switching to the Logs tab
+    // 2) Auto-refresh logs when switching to the Logs tab
     useEffect(() => {
         const fetchLogs = async () => {
             try {
@@ -41,12 +42,29 @@ const ConfigForm = () => {
         };
 
         if (activeTab === 'logs') {
+            // Refresh logs every 2 seconds while on the Logs tab
             const logInterval = setInterval(fetchLogs, 2000);
-            fetchLogs();
+            fetchLogs(); // Fetch once right away
+
             return () => clearInterval(logInterval);
         }
     }, [activeTab]);
 
+    // 3) Fetch available models on mount
+    useEffect(() => {
+        const fetchModels = async () => {
+            try {
+                const response = await fetch('http://localhost:8000/list-models/');
+                const data = await response.json();
+                setAvailableModels(data.models);
+            } catch (error) {
+                console.error('Failed to fetch available models', error);
+            }
+        };
+        fetchModels();
+    }, []);
+
+    // Start server
     const handleStartServer = async () => {
         const commandParams = {
             model: model.trim() || 'model',
@@ -72,6 +90,7 @@ const ConfigForm = () => {
         }
     };
 
+    // Stop server
     const handleStopServer = async () => {
         const response = await fetch('http://localhost:8000/stop-server/', {
             method: 'POST',
@@ -81,7 +100,7 @@ const ConfigForm = () => {
         if (response.ok) {
             alert('Server stopped successfully!');
             setServerStatus('Stopped');
-            setLogs(''); // Clear logs on stop
+            setLogs(''); // Clear logs from the UI
         } else {
             const errorData = await response.json();
             alert(`Failed to stop server: ${errorData.detail}`);
@@ -90,18 +109,24 @@ const ConfigForm = () => {
 
     return (
         <div className="p-4 space-y-4 bg-gray-800 text-white min-h-screen">
-            <h1 className="text-3xl font-bold text-center mb-4">UndreamAI Server Control Panel</h1>
+            <h1 className="text-3xl font-bold text-center mb-4">
+                UndreamAI Server Control Panel
+            </h1>
 
             {/* Tabs for switching views */}
             <div className="flex gap-2">
                 <button
-                    className={`p-2 rounded ${activeTab === 'config' ? 'bg-blue-500 text-white' : 'bg-gray-600'}`}
+                    className={`p-2 rounded ${
+                        activeTab === 'config' ? 'bg-blue-500 text-white' : 'bg-gray-600'
+                    }`}
                     onClick={() => setActiveTab('config')}
                 >
                     Configuration
                 </button>
                 <button
-                    className={`p-2 rounded ${activeTab === 'logs' ? 'bg-blue-500 text-white' : 'bg-gray-600'}`}
+                    className={`p-2 rounded ${
+                        activeTab === 'logs' ? 'bg-blue-500 text-white' : 'bg-gray-600'
+                    }`}
                     onClick={() => setActiveTab('logs')}
                 >
                     Logs
@@ -121,6 +146,20 @@ const ConfigForm = () => {
                             onChange={(e) => setModel(e.target.value)}
                             className="border p-2 rounded bg-gray-700 text-white"
                         />
+
+                        <label>Available Models:</label>
+                        <select
+                            className="border p-2 rounded bg-gray-700 text-white"
+                            onChange={(e) => setModel(e.target.value)}
+                            value={model}
+                        >
+                            <option value="">-- Select a Model --</option>
+                            {availableModels.map((m) => (
+                                <option key={m} value={m}>
+                                    {m}
+                                </option>
+                            ))}
+                        </select>
 
                         <label>Host:</label>
                         <input
@@ -165,7 +204,13 @@ const ConfigForm = () => {
 
                     <div className="flex items-center gap-2 mt-4">
                         <span>Server Status:</span>
-                        <span className={`font-bold ${serverStatus === 'Running' ? 'text-green-500' : 'text-red-500'}`}>
+                        <span
+                            className={`font-bold ${
+                                serverStatus === 'Running'
+                                    ? 'text-green-500'
+                                    : 'text-red-500'
+                            }`}
+                        >
                             {serverStatus}
                         </span>
                     </div>

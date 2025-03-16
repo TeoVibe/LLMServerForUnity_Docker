@@ -137,3 +137,14 @@ async def get_logs():
             return log_file_data.read()
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Log file not found")
+
+# -----------------------
+# List Models
+# -----------------------
+@app.get("/list-models/")
+async def list_models():
+    models_dir = "/models"
+    if not os.path.isdir(models_dir):
+        raise HTTPException(status_code=404, detail="Models directory not found")
+    models = os.listdir(models_dir)  # List all files without filtering
+    return {"models": models}
