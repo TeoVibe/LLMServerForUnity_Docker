@@ -97,19 +97,22 @@ async def stop_server():
 @app.post("/download-model/")
 async def download_model(data: dict):
     model_url = data.get("url")
+    filename = data.get("filename", "model")  # Use custom filename if provided
+
     if not model_url:
         raise HTTPException(status_code=400, detail="Model URL is required.")
 
-    model_path = "/models/model"
+    # Save model with dynamic name
+    model_path = f"/models/{filename}.gguf"
     response = requests.get(model_url)
-    
+
     if response.status_code != 200:
         raise HTTPException(status_code=400, detail="Failed to download model.")
 
     with open(model_path, 'wb') as file:
         file.write(response.content)
     
-    return {"status": "Model downloaded successfully"}
+    return {"status": f"Model downloaded successfully as {filename}.gguf"}
 
 # -----------------------
 # Server Stats Endpoint
