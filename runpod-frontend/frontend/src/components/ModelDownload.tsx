@@ -40,48 +40,55 @@ function ModelDownload() {
     };
 
     return (
-        <div className="model-download">
-            <h2>Download GGUF Model</h2>
+        <div className="p-4 space-y-4 bg-gray-800 text-white rounded">
+            <h2 className="text-2xl font-bold mb-4">Download GGUF Model</h2>
 
-            {/* Dropdown for Predefined Models */}
-            <select
-                className="border p-2 rounded"
-                onChange={(e) => {
-                    const selected = Object.values(predefinedModels)
-                        .flat()
-                        .find((model) => model.name === e.target.value);
+            <div className="flex flex-col gap-2">
+                {/* Dropdown for Predefined Models */}
+                <label>Select a Pre-configured Model:</label>
+                <select
+                    className="border p-2 rounded bg-gray-700 text-white"
+                    onChange={(e) => {
+                        const selected = Object.values(predefinedModels)
+                            .flat()
+                            .find((model) => model.name === e.target.value);
 
-                    if (selected) {
-                        setSelectedModel(selected);
-                        setUrl(selected.url); // Show URL in the input field
-                    } else {
-                        setSelectedModel(null);
-                    }
-                }}
-            >
-                <option value="">-- Select a Model --</option>
-                {Object.entries(predefinedModels).map(([category, models]) => (
-                    <optgroup label={category} key={category}>
-                        {models.map((model) => (
-                            <option key={model.name} value={model.name}>
-                                {model.name}
-                            </option>
-                        ))}
-                    </optgroup>
-                ))}
-            </select>
+                        if (selected) {
+                            setSelectedModel(selected);
+                            setUrl(selected.url); // Show URL in the input field
+                        } else {
+                            setSelectedModel(null);
+                        }
+                    }}
+                >
+                    <option value="">-- Select a Model --</option>
+                    {Object.entries(predefinedModels).map(([category, models]) => (
+                        <optgroup label={category} key={category}>
+                            {models.map((model) => (
+                                <option key={model.name} value={model.name}>
+                                    {model.name}
+                                </option>
+                            ))}
+                        </optgroup>
+                    ))}
+                </select>
 
-            {/* Manual URL Input (Optional) */}
-            <input
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="Model URL"
-                className="border p-2 rounded w-full mt-2"
-            />
+                {/* Manual URL Input (Optional) */}
+                <label className="mt-2">Or Enter Custom URL:</label>
+                <input
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="Model URL"
+                    className="border p-2 rounded bg-gray-700 text-white"
+                />
 
-            <button onClick={handleDownload} className="bg-blue-500 text-white p-2 rounded mt-2">
-                Download Model
-            </button>
+                <button 
+                    onClick={handleDownload} 
+                    className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mt-4"
+                >
+                    Download Model
+                </button>
+            </div>
         </div>
     );
 }

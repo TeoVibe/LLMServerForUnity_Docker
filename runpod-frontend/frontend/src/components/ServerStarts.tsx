@@ -15,11 +15,20 @@ function ServerStats() {
     }, []);
 
     return (
-        <div className="server-stats">
-            <h2>Server Stats</h2>
-            <p>CPU Usage: {stats.cpu}%</p>
-            <p>RAM Usage: {stats.ram}%</p>
-            <p>GPU Usage: {stats.gpu}%</p>
+        <div className="p-4 space-y-4 bg-gray-800 text-white rounded mt-4">
+            <h2 className="text-2xl font-bold mb-4">System Stats</h2>
+            <div className="flex items-center justify-between border-b border-gray-700 pb-2">
+                <span>CPU Usage: </span>
+                <span>{stats.cpu}%</span>
+            </div>
+            <div className="flex items-center justify-between border-b border-gray-700 pb-2">
+                <span>RAM Usage: </span>
+                <span>{stats.ram}%</span>
+            </div>
+            <div className="flex items-center justify-between pb-2">
+                <span>GPU Usage: </span>
+                <span>{stats.gpu}%</span>
+            </div>
         </div>
     );
 }

@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 
-const ConfigForm = () => {
+interface ConfigFormProps {
+    activeTab: 'config' | 'logs';
+    setActiveTab: (tab: 'config' | 'logs') => void;
+}
+
+const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
     const [model, setModel] = useState('model');
     const [availableModels, setAvailableModels] = useState<string[]>([]);
     const [host, setHost] = useState('0.0.0.0');
@@ -10,9 +15,8 @@ const ConfigForm = () => {
     const [customParams, setCustomParams] = useState('');
     const [serverStatus, setServerStatus] = useState('Unknown');
     const [logs, setLogs] = useState('');
-    const [activeTab, setActiveTab] = useState<'config' | 'logs'>('config');
 
-    // 1) Poll for server status every 3s
+    // Poll for server status every 3 seconds
     useEffect(() => {
         const checkStatus = async () => {
             try {
@@ -25,11 +29,11 @@ const ConfigForm = () => {
         };
 
         const interval = setInterval(checkStatus, 3000);
-        checkStatus(); // Check once immediately
+        checkStatus();
         return () => clearInterval(interval);
     }, []);
 
-    // 2) Auto-refresh logs when switching to the Logs tab
+    // Auto-refresh logs when switching to the Logs tab
     useEffect(() => {
         const fetchLogs = async () => {
             try {
@@ -42,15 +46,13 @@ const ConfigForm = () => {
         };
 
         if (activeTab === 'logs') {
-            // Refresh logs every 2 seconds while on the Logs tab
             const logInterval = setInterval(fetchLogs, 2000);
-            fetchLogs(); // Fetch once right away
-
+            fetchLogs();
             return () => clearInterval(logInterval);
         }
     }, [activeTab]);
 
-    // 3) Fetch available models on mount
+    // Fetch available models on mount
     useEffect(() => {
         const fetchModels = async () => {
             try {
@@ -64,7 +66,6 @@ const ConfigForm = () => {
         fetchModels();
     }, []);
 
-    // Start server
     const handleStartServer = async () => {
         const commandParams = {
             model: model.trim() || 'model',
@@ -90,7 +91,6 @@ const ConfigForm = () => {
         }
     };
 
-    // Stop server
     const handleStopServer = async () => {
         const response = await fetch('http://localhost:8000/stop-server/', {
             method: 'POST',
@@ -100,7 +100,7 @@ const ConfigForm = () => {
         if (response.ok) {
             alert('Server stopped successfully!');
             setServerStatus('Stopped');
-            setLogs(''); // Clear logs from the UI
+            setLogs('');
         } else {
             const errorData = await response.json();
             alert(`Failed to stop server: ${errorData.detail}`);
@@ -138,29 +138,44 @@ const ConfigForm = () => {
                 <>
                     <h2 className="text-2xl font-bold">Server Configuration</h2>
 
-                    <div className="flex flex-col gap-2">
-                        <label>Model Name:</label>
+                    <div style={{display: "flex", flexDirection: "row", marginBottom: "1rem"}}>
+                        <span style={{marginRight: "0.5rem"}}>Model:</span>
                         <input
                             type="text"
                             value={model}
                             onChange={(e) => setModel(e.target.value)}
-                            className="border p-2 rounded bg-gray-700 text-white"
+                            style={{
+                                width: "200px",
+                                padding: "0.5rem",
+                                borderRadius: "0.25rem",
+                                backgroundColor: "#374151",
+                                color: "white",
+                                marginRight: "2rem"
+                            }}
                         />
-
-                        <label>Available Models:</label>
+                        <span style={{marginRight: "0.5rem"}}>Available Models:</span>
                         <select
-                            className="border p-2 rounded bg-gray-700 text-white"
                             onChange={(e) => setModel(e.target.value)}
                             value={model}
+                            style={{
+                                width: "250px",
+                                padding: "0.5rem",
+                                borderRadius: "0.25rem",
+                                backgroundColor: "#374151",
+                                color: "white"
+                            }}
                         >
-                            <option value="">-- Select a Model --</option>
+                            <option value="">-- Select --</option>
                             {availableModels.map((m) => (
                                 <option key={m} value={m}>
                                     {m}
                                 </option>
                             ))}
                         </select>
+                    </div>
 
+                    {/* Remaining fields */}
+                    <div className="flex flex-col gap-2">
                         <label>Host:</label>
                         <input
                             type="text"
