@@ -40,54 +40,60 @@ function ModelDownload() {
     };
 
     return (
-        <div className="p-4 space-y-4 bg-gray-800 text-white rounded">
-            <h2 className="text-2xl font-bold mb-4">Download GGUF Model</h2>
+        <div className="p-4 space-y-4 bg-gray-800 text-white rounded-lg shadow-lg mt-6" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+            <h2 className="text-2xl font-bold text-center mb-4">Download GGUF Model</h2>
 
-            <div className="flex flex-col gap-2">
+            <div style={{ width: '500px', margin: '0 auto' }}>
                 {/* Dropdown for Predefined Models */}
-                <label>Select a Pre-configured Model:</label>
-                <select
-                    className="border p-2 rounded bg-gray-700 text-white"
-                    onChange={(e) => {
-                        const selected = Object.values(predefinedModels)
-                            .flat()
-                            .find((model) => model.name === e.target.value);
+                <div className="mb-4">
+                    <label className="block mb-1">Select a Pre-configured Model:</label>
+                    <select
+                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.25rem', backgroundColor: '#374151', color: 'white' }}
+                        onChange={(e) => {
+                            const selected = Object.values(predefinedModels)
+                                .flat()
+                                .find((model) => model.name === e.target.value);
 
-                        if (selected) {
-                            setSelectedModel(selected);
-                            setUrl(selected.url); // Show URL in the input field
-                        } else {
-                            setSelectedModel(null);
-                        }
-                    }}
-                >
-                    <option value="">-- Select a Model --</option>
-                    {Object.entries(predefinedModels).map(([category, models]) => (
-                        <optgroup label={category} key={category}>
-                            {models.map((model) => (
-                                <option key={model.name} value={model.name}>
-                                    {model.name}
-                                </option>
-                            ))}
-                        </optgroup>
-                    ))}
-                </select>
+                            if (selected) {
+                                setSelectedModel(selected);
+                                setUrl(selected.url); // Show URL in the input field
+                            } else {
+                                setSelectedModel(null);
+                            }
+                        }}
+                    >
+                        <option value="">-- Select a Model --</option>
+                        {Object.entries(predefinedModels).map(([category, models]) => (
+                            <optgroup label={category} key={category}>
+                                {models.map((model) => (
+                                    <option key={model.name} value={model.name}>
+                                        {model.name}
+                                    </option>
+                                ))}
+                            </optgroup>
+                        ))}
+                    </select>
+                </div>
 
                 {/* Manual URL Input (Optional) */}
-                <label className="mt-2">Or Enter Custom URL:</label>
-                <input
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder="Model URL"
-                    className="border p-2 rounded bg-gray-700 text-white"
-                />
+                <div className="mb-4">
+                    <label className="block mb-1">Or Enter Custom URL:</label>
+                    <input
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        placeholder="Model URL"
+                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.25rem', backgroundColor: '#374151', color: 'white' }}
+                    />
+                </div>
 
-                <button 
-                    onClick={handleDownload} 
-                    className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mt-4"
-                >
-                    Download Model
-                </button>
+                <div className="flex justify-center mt-6">
+                    <button 
+                        onClick={handleDownload} 
+                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                    >
+                        Download Model
+                    </button>
+                </div>
             </div>
         </div>
     );

@@ -108,26 +108,28 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
     };
 
     return (
-        <div className="p-4 space-y-4 bg-gray-800 text-white min-h-screen">
+        <div className="p-4 space-y-4 bg-gray-800 text-white rounded-lg shadow-lg" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
             <h1 className="text-3xl font-bold text-center mb-4">
                 UndreamAI Server Control Panel
             </h1>
 
             {/* Tabs for switching views */}
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', width: '100%', marginBottom: '1.5rem', marginTop: '1rem' }}>
                 <button
-                    className={`p-2 rounded ${
+                    className={`px-6 py-2 rounded-md text-center ${
                         activeTab === 'config' ? 'bg-blue-500 text-white' : 'bg-gray-600'
                     }`}
                     onClick={() => setActiveTab('config')}
+                    style={{ width: '150px', margin: '0 auto' }}
                 >
                     Configuration
                 </button>
                 <button
-                    className={`p-2 rounded ${
+                    className={`px-6 py-2 rounded-md text-center ${
                         activeTab === 'logs' ? 'bg-blue-500 text-white' : 'bg-gray-600'
                     }`}
                     onClick={() => setActiveTab('logs')}
+                    style={{ width: '150px', margin: '0 auto' }}
                 >
                     Logs
                 </button>
@@ -136,114 +138,140 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
             {/* Configuration Tab */}
             {activeTab === 'config' && (
                 <>
-                    <h2 className="text-2xl font-bold">Server Configuration</h2>
+                    <h2 className="text-2xl font-bold text-center">Server Configuration</h2>
 
-                    <div style={{display: "flex", flexDirection: "row", marginBottom: "1rem"}}>
-                        <span style={{marginRight: "0.5rem"}}>Model:</span>
-                        <input
-                            type="text"
-                            value={model}
-                            onChange={(e) => setModel(e.target.value)}
-                            style={{
-                                width: "200px",
-                                padding: "0.5rem",
-                                borderRadius: "0.25rem",
-                                backgroundColor: "#374151",
-                                color: "white",
-                                marginRight: "2rem"
-                            }}
-                        />
-                        <span style={{marginRight: "0.5rem"}}>Available Models:</span>
-                        <select
-                            onChange={(e) => setModel(e.target.value)}
-                            value={model}
-                            style={{
-                                width: "250px",
-                                padding: "0.5rem",
-                                borderRadius: "0.25rem",
-                                backgroundColor: "#374151",
-                                color: "white"
-                            }}
-                        >
-                            <option value="">-- Select --</option>
-                            {availableModels.map((m) => (
-                                <option key={m} value={m}>
-                                    {m}
-                                </option>
-                            ))}
-                        </select>
+                    {/* Model row with fixed width */}
+                    <div style={{ width: '500px', margin: '0 auto', marginBottom: '1rem' }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div style={{ marginRight: '15px' }}>
+                                <label className="block mb-1">Model:</label>
+                                <input
+                                    type="text"
+                                    value={model}
+                                    onChange={(e) => setModel(e.target.value)}
+                                    style={{
+                                        width: "220px",
+                                        padding: "0.5rem",
+                                        borderRadius: "0.25rem",
+                                        backgroundColor: "#374151",
+                                        color: "white"
+                                    }}
+                                />
+                            </div>
+                            
+                            <div>
+                                <label className="block mb-1">Available Models:</label>
+                                <select
+                                    onChange={(e) => setModel(e.target.value)}
+                                    value={model}
+                                    style={{
+                                        width: "220px",
+                                        padding: "0.5rem",
+                                        borderRadius: "0.25rem",
+                                        backgroundColor: "#374151",
+                                        color: "white"
+                                    }}
+                                >
+                                    <option value="">-- Select --</option>
+                                    {availableModels.map((m) => (
+                                        <option key={m} value={m}>
+                                            {m}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Remaining fields */}
-                    <div className="flex flex-col gap-2">
-                        <label>Host:</label>
-                        <input
-                            type="text"
-                            value={host}
-                            onChange={(e) => setHost(e.target.value)}
-                            className="border p-2 rounded bg-gray-700 text-white"
-                        />
+                    {/* Remaining fields with fixed width */}
+                    <div style={{ width: '500px', margin: '0 auto' }}>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block mb-1">Host:</label>
+                                <input
+                                    type="text"
+                                    value={host}
+                                    onChange={(e) => setHost(e.target.value)}
+                                    className="border p-2 rounded bg-gray-700 text-white w-full"
+                                    style={{ width: '220px' }}
+                                />
+                            </div>
 
-                        <label>Port:</label>
-                        <input
-                            type="number"
-                            value={port}
-                            onChange={(e) => setPort(Number(e.target.value))}
-                            className="border p-2 rounded bg-gray-700 text-white"
-                        />
+                            <div>
+                                <label className="block mb-1">Port:</label>
+                                <input
+                                    type="number"
+                                    value={port}
+                                    onChange={(e) => setPort(Number(e.target.value))}
+                                    className="border p-2 rounded bg-gray-700 text-white"
+                                    style={{ width: '220px' }}
+                                />
+                            </div>
 
-                        <label>NGL:</label>
-                        <input
-                            type="number"
-                            value={ngl}
-                            onChange={(e) => setNgl(Number(e.target.value))}
-                            className="border p-2 rounded bg-gray-700 text-white"
-                        />
+                            <div>
+                                <label className="block mb-1">NGL:</label>
+                                <input
+                                    type="number"
+                                    value={ngl}
+                                    onChange={(e) => setNgl(Number(e.target.value))}
+                                    className="border p-2 rounded bg-gray-700 text-white"
+                                    style={{ width: '220px' }}
+                                />
+                            </div>
 
-                        <label>Template:</label>
-                        <input
-                            type="text"
-                            value={template}
-                            onChange={(e) => setTemplate(e.target.value)}
-                            className="border p-2 rounded bg-gray-700 text-white"
-                        />
+                            <div>
+                                <label className="block mb-1">Template:</label>
+                                <input
+                                    type="text"
+                                    value={template}
+                                    onChange={(e) => setTemplate(e.target.value)}
+                                    className="border p-2 rounded bg-gray-700 text-white"
+                                    style={{ width: '220px' }}
+                                />
+                            </div>
+                        </div>
 
-                        <label>Custom Parameters (Optional):</label>
-                        <input
-                            type="text"
-                            value={customParams}
-                            onChange={(e) => setCustomParams(e.target.value)}
-                            className="border p-2 rounded bg-gray-700 text-white"
-                        />
-                    </div>
+                        <div className="mt-4">
+                            <label className="block mb-1">Custom Parameters (Optional):</label>
+                            <input
+                                type="text"
+                                value={customParams}
+                                onChange={(e) => setCustomParams(e.target.value)}
+                                className="border p-2 rounded bg-gray-700 text-white"
+                                style={{ width: '100%', maxWidth: '500px' }}
+                            />
+                        </div>
 
-                    <div className="flex items-center gap-2 mt-4">
-                        <span>Server Status:</span>
-                        <span
-                            className={`font-bold ${
-                                serverStatus === 'Running'
-                                    ? 'text-green-500'
-                                    : 'text-red-500'
-                            }`}
-                        >
-                            {serverStatus}
-                        </span>
-                    </div>
+                        <div className="flex items-center justify-between mt-6">
+                            <div className="flex items-center gap-2">
+                                <span>Server Status:</span>
+                                <span
+                                    className={`font-bold ${
+                                        serverStatus === 'Running'
+                                            ? 'text-green-500'
+                                            : 'text-red-500'
+                                    }`}
+                                >
+                                    {serverStatus}
+                                </span>
+                            </div>
 
-                    <div className="flex gap-4 mt-4">
-                        <button
-                            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-                            onClick={handleStartServer}
-                        >
-                            Start Server
-                        </button>
+                            <div className="flex gap-4">
+                                <button
+                                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                                    onClick={handleStartServer}
+                                >
+                                    Start Server
+                                </button>
 
-                        <button
-                            className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-                            onClick={handleStopServer}
-                        >
-                            Stop Server
-                        </button>
+                                <button
+                                    className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                                    onClick={handleStopServer}
+                                >
+                                    Stop Server
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </>
             )}
