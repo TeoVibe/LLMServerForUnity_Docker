@@ -123,10 +123,39 @@ async def download_model(data: dict):
 @app.get("/stats/")
 async def get_stats():
     global server_process
+    
+    # Get GPU usage using nvidia-smi
+    try:
+        gpu_usage = 0
+        
+        # First check if nvidia-smi is available
+        nvidia_smi_exists = subprocess.run(
+            ["which", "nvidia-smi"], 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE
+        ).returncode == 0
+        
+        if nvidia_smi_exists:
+            # Get GPU utilization - this works with multiple GPUs
+            nvidia_smi_output = subprocess.check_output(
+                ["nvidia-smi", "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"],
+                text=True, 
+                stderr=subprocess.PIPE
+            ).strip()
+            
+            # Parse the output - if multiple GPUs, take the max utilization
+            if nvidia_smi_output:
+                gpu_values = [float(x.strip()) for x in nvidia_smi_output.split('\n') if x.strip()]
+                if gpu_values:
+                    gpu_usage = int(max(gpu_values))  # Use the highest GPU usage if multiple GPUs
+    except (subprocess.SubprocessError, ValueError, FileNotFoundError, PermissionError) as e:
+        print(f"Error getting GPU stats: {e}")
+        gpu_usage = 0
+    
     return {
         "cpu": psutil.cpu_percent(),
         "ram": psutil.virtual_memory().percent,
-        "gpu": 0,
+        "gpu": gpu_usage,
         "server_running": server_process and server_process.poll() is None
     }
 

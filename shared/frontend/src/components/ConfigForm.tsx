@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../context/useTheme';
 
+// Spinning loader component
+const Spinner = () => (
+    <div className="inline-block animate-spin rounded-full border-4 border-solid border-current border-r-transparent h-5 w-5 ml-1" 
+         style={{ borderColor: 'white transparent white transparent' }}></div>
+);
+
 interface ConfigFormProps {
     activeTab: 'config' | 'logs' | 'allowlist';
     setActiveTab: (tab: 'config' | 'logs' | 'allowlist') => void;
@@ -17,6 +23,9 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
     const [customParams, setCustomParams] = useState('');
     const [serverStatus, setServerStatus] = useState('Unknown');
     const [logs, setLogs] = useState('');
+    const [isStarting, setIsStarting] = useState(false);
+    const [isStopping, setIsStopping] = useState(false);
+    const [operationStatus, setOperationStatus] = useState<{message: string, success: boolean} | null>(null);
 
     // Theme-based styles
     const getContainerStyle = () => {
@@ -130,6 +139,9 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
     }, []);
 
     const handleStartServer = async () => {
+        setIsStarting(true);
+        setOperationStatus(null);
+        
         const commandParams = {
             model: model.trim() || 'model',
             host,
@@ -139,34 +151,67 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
             custom_params: customParams.trim(),
         };
 
-        const response = await fetch('http://localhost:8000/start-server/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(commandParams)
-        });
+        try {
+            const response = await fetch('http://localhost:8000/start-server/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(commandParams)
+            });
 
-        if (response.ok) {
-            alert('Server started successfully!');
-            setServerStatus('Running');
-        } else {
-            const errorData = await response.json();
-            alert(`Failed to start server: ${errorData.detail}`);
+            if (response.ok) {
+                setServerStatus('Running');
+                setOperationStatus({
+                    message: 'Server started successfully!',
+                    success: true
+                });
+            } else {
+                const errorData = await response.json();
+                setOperationStatus({
+                    message: `Failed to start server: ${errorData.detail}`,
+                    success: false
+                });
+            }
+        } catch (error) {
+            setOperationStatus({
+                message: 'Network error occurred. Please try again.',
+                success: false
+            });
+        } finally {
+            setIsStarting(false);
         }
     };
 
     const handleStopServer = async () => {
-        const response = await fetch('http://localhost:8000/stop-server/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
+        setIsStopping(true);
+        setOperationStatus(null);
+        
+        try {
+            const response = await fetch('http://localhost:8000/stop-server/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
 
-        if (response.ok) {
-            alert('Server stopped successfully!');
-            setServerStatus('Stopped');
-            setLogs('');
-        } else {
-            const errorData = await response.json();
-            alert(`Failed to stop server: ${errorData.detail}`);
+            if (response.ok) {
+                setServerStatus('Stopped');
+                setLogs('');
+                setOperationStatus({
+                    message: 'Server stopped successfully!',
+                    success: true
+                });
+            } else {
+                const errorData = await response.json();
+                setOperationStatus({
+                    message: `Failed to stop server: ${errorData.detail}`,
+                    success: false
+                });
+            }
+        } catch (error) {
+            setOperationStatus({
+                message: 'Network error occurred. Please try again.',
+                success: false
+            });
+        } finally {
+            setIsStopping(false);
         }
     };
 
@@ -203,7 +248,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
             </h1>
 
             {/* Tabs for switching views with theme toggle */}
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', width: '100%', marginBottom: '1.5rem', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1.5rem', width: '90%', marginBottom: '2rem', marginTop: '1.5rem', margin: '1.5rem auto' }}>
                 <button
                     className={`px-6 py-2 rounded-md text-center`}
                     onClick={() => setActiveTab('config')}
@@ -221,6 +266,40 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                     Allowlist
                 </button>
                 
+                <button
+                    className={`px-6 py-2 rounded-md text-center`}
+                    onClick={() => setActiveTab('logs')}
+                    style={getTabButtonStyle(activeTab === 'logs')}
+                >
+                    Logs
+                </button>
+                
+                {/* Refresh Button */}
+                <button
+                    className="refresh-button"
+                    onClick={() => window.location.reload()}
+                    aria-label="Refresh page"
+                    style={{
+                        color: theme === 'corporate' ? '#000' : '#fff',
+                        border: theme === 'corporate' ? '1px solid #000' : 'none',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        width: '30px',
+                        height: '30px',
+                        borderRadius: '50%',
+                        backgroundColor: theme === 'cyberpunk' ? '#2d2d4d' : 'transparent',
+                        boxShadow: theme === 'cyberpunk' ? 'var(--neon-glow)' : 'none'
+                    }}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M23 4v6h-6"></path>
+                        <path d="M1 20v-6h6"></path>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+                        <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+                    </svg>
+                </button>
+                
                 {/* Theme Toggle Button */}
                 <button 
                     className="theme-toggle" 
@@ -232,14 +311,6 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                     }}
                 >
                     {theme === 'cyberpunk' ? <SunIcon /> : <MoonIcon />}
-                </button>
-                
-                <button
-                    className={`px-6 py-2 rounded-md text-center`}
-                    onClick={() => setActiveTab('logs')}
-                    style={getTabButtonStyle(activeTab === 'logs')}
-                >
-                    Logs
                 </button>
             </div>
 
@@ -303,7 +374,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <label className="block mb-1">NGL:</label>
+                                <label className="block mb-1">GPU Layers:</label>
                                 <input
                                     type="number"
                                     value={ngl}
@@ -333,7 +404,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                             />
                         </div>
 
-                        <div className="flex justify-center items-center mt-8 flex-col gap-6" style={{width: '100%', margin: '0 auto', textAlign: 'center'}}>
+                        <div className="flex justify-center items-center mt-12 mb-8 flex-col gap-8" style={{width: '100%', margin: '0 auto', textAlign: 'center'}}>
                             {/* Visual Server Status Indicator */}
                             <div className="flex flex-col items-center bg-gray-800 p-3 rounded-lg" style={{
                                 width: '140px',
@@ -379,36 +450,64 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                                 </span>
                             </div>
 
-                            <div className="flex gap-4 justify-center">
-                                <button
-                                    className="px-4 py-2 rounded-md"
-                                    onClick={handleStartServer}
-                                    style={{ 
-                                        backgroundColor: 'var(--button-primary)',
-                                        color: '#ffffff', // Explicitly setting white text color
-                                        boxShadow: theme === 'cyberpunk' ? 'var(--neon-glow)' : 'none',
-                                        border: theme === 'corporate' ? '1px solid #000' : 'none',
-                                        transition: 'all 0.2s ease-in-out',
-                                        width: '180px',
-                                    }}
-                                >
-                                    Start Server
-                                </button>
+                            <div className="flex flex-col items-center gap-4 w-full">
+                                <div style={{display: 'flex', justifyContent: 'center', width: '100%', margin: '0 auto'}}>
+                                    <button
+                                        className="px-4 py-2 rounded-md"
+                                        onClick={handleStartServer}
+                                        disabled={isStarting}
+                                        style={{ 
+                                            backgroundColor: 'var(--button-primary)',
+                                            color: '#ffffff', // Explicitly setting white text color
+                                            boxShadow: theme === 'cyberpunk' ? 'var(--neon-glow)' : 'none',
+                                            border: theme === 'corporate' ? '1px solid #000' : 'none',
+                                            transition: 'all 0.2s ease-in-out',
+                                            width: '180px',
+                                            opacity: isStarting ? 0.7 : 1,
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center'
+                                        }}
+                                    >
+                                        {isStarting ? <>Starting<Spinner /></> : 'Start Server'}
+                                    </button>
 
-                                <button
-                                    className="px-4 py-2 rounded-md"
-                                    onClick={handleStopServer}
-                                    style={{ 
-                                        backgroundColor: 'var(--button-danger)',
-                                        color: '#ffffff', // Explicitly setting white text color
-                                        boxShadow: theme === 'cyberpunk' ? '0 0 5px #e53e3e, 0 0 10px rgba(229, 62, 62, 0.5)' : 'none',
-                                        border: theme === 'corporate' ? '1px solid #000' : 'none',
-                                        transition: 'all 0.2s ease-in-out',
-                                        width: '180px',
-                                    }}
-                                >
-                                    Stop Server
-                                </button>
+                                    <button
+                                        className="px-4 py-2 rounded-md"
+                                        onClick={handleStopServer}
+                                        disabled={isStopping}
+                                        style={{ 
+                                            backgroundColor: 'var(--button-danger)',
+                                            color: '#ffffff', // Explicitly setting white text color
+                                            boxShadow: theme === 'cyberpunk' ? '0 0 5px #e53e3e, 0 0 10px rgba(229, 62, 62, 0.5)' : 'none',
+                                            border: theme === 'corporate' ? '1px solid #000' : 'none',
+                                            transition: 'all 0.2s ease-in-out',
+                                            width: '180px',
+                                            opacity: isStopping ? 0.7 : 1,
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center'
+                                        }}
+                                    >
+                                        {isStopping ? <>Stopping<Spinner /></> : 'Stop Server'}
+                                    </button>
+                                </div>
+                                
+                                {operationStatus && (
+                                    <div className="mt-4 p-3 rounded-md max-w-[400px] text-center" style={{
+                                        backgroundColor: operationStatus.success ? 
+                                            (theme === 'cyberpunk' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.1)') : 
+                                            (theme === 'cyberpunk' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)'),
+                                        color: operationStatus.success ? 
+                                            (theme === 'cyberpunk' ? '#10b981' : '#047857') : 
+                                            (theme === 'cyberpunk' ? '#ef4444' : '#b91c1c'),
+                                        border: theme === 'cyberpunk' ? 
+                                            `1px solid ${operationStatus.success ? '#10b981' : '#ef4444'}` : 
+                                            'none',
+                                    }}>
+                                        {operationStatus.message}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

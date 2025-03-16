@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { useTheme } from '../context/useTheme';
 
+// Spinning loader component
+const Spinner = () => (
+    <div className="inline-block animate-spin rounded-full border-4 border-solid border-current border-r-transparent h-8 w-8" 
+         style={{ borderColor: 'var(--accent-color) transparent var(--accent-color) transparent' }}></div>
+);
+
 const predefinedModels = {
     "Medium models": [
         { name: "Llama 3.1 8B", url: "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf?download=true", filename: "llama3.1-8b" },
@@ -22,6 +28,8 @@ function ModelDownload() {
     const { theme } = useTheme();
     const [url, setUrl] = useState('');
     const [selectedModel, setSelectedModel] = useState<{ url: string; filename: string } | null>(null);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [downloadStatus, setDownloadStatus] = useState<{message: string, success: boolean} | null>(null);
 
     // Theme-based styles
     const getContainerStyle = () => {
@@ -50,20 +58,38 @@ function ModelDownload() {
     };
 
     const handleDownload = async () => {
+        setIsDownloading(true);
+        setDownloadStatus(null);
+        
         const downloadData = selectedModel
             ? { url: selectedModel.url, filename: selectedModel.filename }
             : { url };
 
-        const response = await fetch('http://localhost:8000/download-model/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(downloadData)
-        });
+        try {
+            const response = await fetch('http://localhost:8000/download-model/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(downloadData)
+            });
 
-        if (response.ok) {
-            alert(`Model downloaded successfully as "${selectedModel?.filename || 'model'}"!`);
-        } else {
-            alert('Failed to download model.');
+            if (response.ok) {
+                setDownloadStatus({
+                    message: `Model downloaded successfully as "${selectedModel?.filename || 'model'}"!`,
+                    success: true
+                });
+            } else {
+                setDownloadStatus({
+                    message: 'Failed to download model. Please try again.',
+                    success: false
+                });
+            }
+        } catch (error) {
+            setDownloadStatus({
+                message: 'Network error occurred. Please check your connection.',
+                success: false
+            });
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -80,8 +106,8 @@ function ModelDownload() {
 
             <div style={{ width: '500px', margin: '0 auto' }}>
                 {/* Dropdown for Predefined Models */}
-                <div className="mb-4 text-center" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                    <label className="block mb-1">Select a Pre-configured Model:</label>
+                <div className="mb-8 text-center" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                    <label className="block mb-3">Select a Pre-configured Model:</label>
                     <select
                         style={{...getInputStyle(), textAlign: 'center', width: '300px'}}
                         onChange={(e) => {
@@ -111,8 +137,8 @@ function ModelDownload() {
                 </div>
 
                 {/* Manual URL Input (Optional) */}
-                <div className="mb-4 text-center" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                    <label className="block mb-1">Or Enter Custom URL:</label>
+                <div className="mb-8 text-center" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                    <label className="block mb-3">Or Enter Custom URL:</label>
                     <input
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
@@ -121,10 +147,11 @@ function ModelDownload() {
                     />
                 </div>
 
-                <div className="flex justify-center mt-6">
+                <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%', margin: '0 auto', textAlign: 'center'}} className="mt-10 mb-4">
                     <button 
                         onClick={handleDownload} 
-                        className="px-4 py-2 rounded-md"
+                        className="px-4 py-2 rounded-md mx-auto"
+                        disabled={isDownloading}
                         style={{ 
                             backgroundColor: 'var(--button-primary)',
                             color: '#ffffff', // Explicitly setting white text color
@@ -132,10 +159,33 @@ function ModelDownload() {
                             border: theme === 'corporate' ? '1px solid #000' : 'none',
                             transition: 'all 0.2s ease-in-out',
                             width: '180px',
+                            opacity: isDownloading ? 0.7 : 1,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            gap: '8px'
                         }}
                     >
-                        Download Model
+                        {isDownloading && <Spinner />}
+                        {isDownloading ? 'Downloading...' : 'Download Model'}
                     </button>
+                    
+                    {downloadStatus && (
+                        <div className="mt-4 p-3 rounded-md" style={{
+                            backgroundColor: downloadStatus.success ? 
+                                (theme === 'cyberpunk' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.1)') : 
+                                (theme === 'cyberpunk' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)'),
+                            color: downloadStatus.success ? 
+                                (theme === 'cyberpunk' ? '#10b981' : '#047857') : 
+                                (theme === 'cyberpunk' ? '#ef4444' : '#b91c1c'),
+                            border: theme === 'cyberpunk' ? 
+                                `1px solid ${downloadStatus.success ? '#10b981' : '#ef4444'}` : 
+                                'none',
+                            maxWidth: '400px',
+                        }}>
+                            {downloadStatus.message}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

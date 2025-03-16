@@ -34,12 +34,12 @@ function AppContent({
     };
     
     return (
-        <div className={`p-4 ${getBgClass()} min-h-screen flex justify-center transition-colors duration-300`}>
+        <div className={`p-8 ${getBgClass()} min-h-screen flex justify-center transition-colors duration-300`}>
             <div className="w-[900px]"> {/* Fixed width container instead of max-width */}
                 <ConfigForm activeTab={activeTab} setActiveTab={setActiveTab} />
-                {activeTab === 'config' && <ModelDownload />}
-                {activeTab === 'allowlist' && <AllowlistForm />}
-                <ServerStats />
+                {activeTab === 'config' && <div className="mt-8"><ModelDownload /></div>}
+                {activeTab === 'allowlist' && <div className="mt-8"><AllowlistForm /></div>}
+                <div className="mt-12 mb-8"><ServerStats /></div>
             </div>
         </div>
     );

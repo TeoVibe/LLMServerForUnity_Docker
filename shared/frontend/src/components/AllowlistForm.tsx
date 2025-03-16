@@ -105,9 +105,9 @@ const AllowlistForm = () => {
             <h2 className="text-2xl font-bold text-center">IP Allowlist Configuration</h2>
             
             <div className="max-w-[600px] mx-auto text-center">
-                <div className="mb-6" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                    <p className="mb-2">Current Allowlist:</p>
-                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-md break-words mx-auto" style={{
+                <div className="mb-10" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                    <p className="mb-4">Current Allowlist:</p>
+                    <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-md break-words mx-auto" style={{
                         backgroundColor: theme === 'cyberpunk' ? '#1a1a2e' : '#f8f9fa',
                         border: theme === 'cyberpunk' ? '1px solid var(--accent-color)' : '1px solid #e5e7eb',
                         textAlign: 'center',
@@ -117,7 +117,7 @@ const AllowlistForm = () => {
                     </div>
                 </div>
                 
-                <div className="mb-6" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                <div className="mb-10" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                     <label className="block mb-2">New Allowlist (comma-separated IPs):</label>
                     <input
                         type="text"
@@ -127,10 +127,6 @@ const AllowlistForm = () => {
                         style={{...getInputStyle(), textAlign: 'center', width: '300px'}}
                         className="mb-2"
                     />
-                    <p className="text-sm text-gray-500 italic">
-                        Use 0.0.0.0 to allow connections from any IP address.
-                        Use comma-separated list for specific IPs only.
-                    </p>
                 </div>
                 
                 {updateMessage && (
@@ -151,7 +147,7 @@ const AllowlistForm = () => {
                     </div>
                 )}
                 
-                <div style={{display: 'flex', justifyContent: 'center', width: '100%', margin: '0 auto'}}>
+                <div style={{display: 'flex', justifyContent: 'center', width: '100%', margin: '2rem auto'}}>
                     <button
                         className="px-6 py-2 rounded-md mx-auto"
                         onClick={handleUpdateAllowlist}
@@ -162,18 +158,14 @@ const AllowlistForm = () => {
                     </button>
                 </div>
                 
-                <div className="mt-8 p-4 bg-gray-100 dark:bg-gray-800 rounded-md text-center" style={{
+                <div className="mt-12 mb-8 p-6 bg-gray-100 dark:bg-gray-800 rounded-md text-center" style={{
                     backgroundColor: theme === 'cyberpunk' ? 'rgba(26, 26, 46, 0.7)' : '#f8f9fa',
                     border: theme === 'cyberpunk' ? '1px solid var(--accent-color)' : '1px solid #e5e7eb',
                 }}>
-                    <h3 className="font-semibold mb-2">About IP Allowlist</h3>
-                    <p className="text-sm mb-2">
-                        The IP allowlist restricts access to the UndreamAI server to specific IP addresses.
-                    </p>
-                    <ul className="list-none text-sm space-y-1">
+                    <p className="text-sm mb-4 text-center" style={{maxWidth: '400px', margin: '0 auto 1rem auto'}}>
+                        <li>Use <code>0.0.0.0</code> to allow connections from any IP</li>
                         <li>For restricted access, enter specific IPs separated by commas</li>
-                        <li>Changes take effect after server restart</li>
-                    </ul>
+                        <li>Changes take effect after server restart</li>                    </p>
                 </div>
             </div>
         </div>
