@@ -9,7 +9,7 @@ const ConfigForm = () => {
     const [customParams, setCustomParams] = useState('');
     const [serverStatus, setServerStatus] = useState('Unknown');
     const [logs, setLogs] = useState('');
-    const [showLogs, setShowLogs] = useState(false);
+    const [activeTab, setActiveTab] = useState<'config' | 'logs'>('config');
 
     // Poll for server status
     useEffect(() => {
@@ -17,25 +17,44 @@ const ConfigForm = () => {
             try {
                 const response = await fetch('http://localhost:8000/stats/');
                 const data = await response.json();
-                setServerStatus(data.running ? 'Running' : 'Stopped');
+                setServerStatus(data.server_running ? 'Running' : 'Stopped');
             } catch (error) {
                 setServerStatus('Stopped');
             }
         };
 
-        const interval = setInterval(checkStatus, 3000); // Poll every 3 seconds
-        checkStatus(); // Initial check
-        return () => clearInterval(interval); // Cleanup on unmount
+        const interval = setInterval(checkStatus, 3000);
+        checkStatus();
+        return () => clearInterval(interval);
     }, []);
+
+    // Auto-refresh logs when switching to the Logs tab
+    useEffect(() => {
+        const fetchLogs = async () => {
+            try {
+                const response = await fetch('http://localhost:8000/logs/');
+                const data = await response.text();
+                setLogs(data);
+            } catch (error) {
+                setLogs('Error fetching logs.');
+            }
+        };
+
+        if (activeTab === 'logs') {
+            const logInterval = setInterval(fetchLogs, 2000);
+            fetchLogs();
+            return () => clearInterval(logInterval);
+        }
+    }, [activeTab]);
 
     const handleStartServer = async () => {
         const commandParams = {
-            model,
+            model: model.trim() || 'model',
             host,
             port,
             ngl,
             template,
-            custom_params: customParams.trim(),  // New custom parameters field
+            custom_params: customParams.trim(),
         };
 
         const response = await fetch('http://localhost:8000/start-server/', {
@@ -53,99 +72,128 @@ const ConfigForm = () => {
         }
     };
 
-    const handleToggleLogs = async () => {
-        if (!showLogs) {
-            try {
-                const response = await fetch('http://localhost:8000/logs/');
-                const data = await response.text();
-                setLogs(data);
-            } catch (error) {
-                setLogs('Error fetching logs.');
-            }
+    const handleStopServer = async () => {
+        const response = await fetch('http://localhost:8000/stop-server/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+            alert('Server stopped successfully!');
+            setServerStatus('Stopped');
+            setLogs(''); // Clear logs on stop
+        } else {
+            const errorData = await response.json();
+            alert(`Failed to stop server: ${errorData.detail}`);
         }
-        setShowLogs(!showLogs);
     };
 
     return (
-        <div className="p-4 space-y-4">
-            <h2 className="text-2xl font-bold">Server Configuration</h2>
+        <div className="p-4 space-y-4 bg-gray-800 text-white min-h-screen">
+            <h1 className="text-3xl font-bold text-center mb-4">UndreamAI Server Control Panel</h1>
 
-            <div className="flex flex-col gap-2">
-                <label>Model:</label>
-                <input
-                    type="text"
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    className="border p-2 rounded"
-                />
-
-                <label>Host:</label>
-                <input
-                    type="text"
-                    value={host}
-                    onChange={(e) => setHost(e.target.value)}
-                    className="border p-2 rounded"
-                />
-
-                <label>Port:</label>
-                <input
-                    type="number"
-                    value={port}
-                    onChange={(e) => setPort(Number(e.target.value))}
-                    className="border p-2 rounded"
-                />
-
-                <label>NGL:</label>
-                <input
-                    type="number"
-                    value={ngl}
-                    onChange={(e) => setNgl(Number(e.target.value))}
-                    className="border p-2 rounded"
-                />
-
-                <label>Template:</label>
-                <input
-                    type="text"
-                    value={template}
-                    onChange={(e) => setTemplate(e.target.value)}
-                    className="border p-2 rounded"
-                />
-
-                <label>Custom Parameters (Optional):</label>
-                <input
-                    type="text"
-                    value={customParams}
-                    onChange={(e) => setCustomParams(e.target.value)}
-                    placeholder="e.g., --flag1 value1 --flag2 value2"
-                    className="border p-2 rounded"
-                />
-            </div>
-
-            <div className="flex items-center gap-2">
-                <span>Server Status:</span>
-                <span className={`font-bold ${serverStatus === 'Running' ? 'text-green-500' : 'text-red-500'}`}>
-                    {serverStatus}
-                </span>
-            </div>
-
-            <div className="flex gap-4">
+            {/* Tabs for switching views */}
+            <div className="flex gap-2">
                 <button
-                    className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-                    onClick={handleStartServer}
+                    className={`p-2 rounded ${activeTab === 'config' ? 'bg-blue-500 text-white' : 'bg-gray-600'}`}
+                    onClick={() => setActiveTab('config')}
                 >
-                    Start Server
+                    Configuration
                 </button>
-
                 <button
-                    className="bg-gray-500 text-white p-2 rounded hover:bg-gray-600"
-                    onClick={handleToggleLogs}
+                    className={`p-2 rounded ${activeTab === 'logs' ? 'bg-blue-500 text-white' : 'bg-gray-600'}`}
+                    onClick={() => setActiveTab('logs')}
                 >
-                    {showLogs ? 'Hide Logs' : 'View Logs'}
+                    Logs
                 </button>
             </div>
 
-            {showLogs && (
-                <div className="border p-4 mt-4 rounded bg-gray-900 text-white whitespace-pre overflow-y-auto max-h-64">
+            {/* Configuration Tab */}
+            {activeTab === 'config' && (
+                <>
+                    <h2 className="text-2xl font-bold">Server Configuration</h2>
+
+                    <div className="flex flex-col gap-2">
+                        <label>Model Name:</label>
+                        <input
+                            type="text"
+                            value={model}
+                            onChange={(e) => setModel(e.target.value)}
+                            className="border p-2 rounded bg-gray-700 text-white"
+                        />
+
+                        <label>Host:</label>
+                        <input
+                            type="text"
+                            value={host}
+                            onChange={(e) => setHost(e.target.value)}
+                            className="border p-2 rounded bg-gray-700 text-white"
+                        />
+
+                        <label>Port:</label>
+                        <input
+                            type="number"
+                            value={port}
+                            onChange={(e) => setPort(Number(e.target.value))}
+                            className="border p-2 rounded bg-gray-700 text-white"
+                        />
+
+                        <label>NGL:</label>
+                        <input
+                            type="number"
+                            value={ngl}
+                            onChange={(e) => setNgl(Number(e.target.value))}
+                            className="border p-2 rounded bg-gray-700 text-white"
+                        />
+
+                        <label>Template:</label>
+                        <input
+                            type="text"
+                            value={template}
+                            onChange={(e) => setTemplate(e.target.value)}
+                            className="border p-2 rounded bg-gray-700 text-white"
+                        />
+
+                        <label>Custom Parameters (Optional):</label>
+                        <input
+                            type="text"
+                            value={customParams}
+                            onChange={(e) => setCustomParams(e.target.value)}
+                            className="border p-2 rounded bg-gray-700 text-white"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-4">
+                        <span>Server Status:</span>
+                        <span className={`font-bold ${serverStatus === 'Running' ? 'text-green-500' : 'text-red-500'}`}>
+                            {serverStatus}
+                        </span>
+                    </div>
+
+                    <div className="flex gap-4 mt-4">
+                        <button
+                            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+                            onClick={handleStartServer}
+                        >
+                            Start Server
+                        </button>
+
+                        <button
+                            className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+                            onClick={handleStopServer}
+                        >
+                            Stop Server
+                        </button>
+                    </div>
+                </>
+            )}
+
+            {/* Logs Tab */}
+            {activeTab === 'logs' && (
+                <div
+                    className="border p-4 mt-4 rounded bg-black text-white whitespace-pre overflow-y-scroll max-h-[500px]"
+                    style={{ maxHeight: '500px', overflowY: 'scroll' }}
+                >
                     {logs || 'No logs available.'}
                 </div>
             )}

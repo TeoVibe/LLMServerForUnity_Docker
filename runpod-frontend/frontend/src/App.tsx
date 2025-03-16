@@ -5,7 +5,6 @@ import ServerStats from './components/ServerStarts';
 function App() {
     return (
         <div className="app-container">
-            <h1>UndreamAI Server Control Panel</h1>
             <ConfigForm />
             <ModelDownload />
             <ServerStats />
