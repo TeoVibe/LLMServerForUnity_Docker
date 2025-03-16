@@ -324,18 +324,51 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                             />
                         </div>
 
-                        <div className="flex items-center justify-between mt-6">
-                            <div className="flex items-center gap-2">
-                                <span>Server Status:</span>
-                                <span
-                                    className={`font-bold ${
-                                        serverStatus === 'Running'
-                                            ? 'text-green-500'
-                                            : 'text-red-500'
-                                    }`}
-                                >
-                                    {serverStatus}
-                                </span>
+                        <div className="flex items-center justify-between mt-8">
+                            <div className="flex items-center gap-3">
+                                {/* Visual Server Status Indicator */}
+                                <div className="flex flex-col items-center bg-gray-800 p-3 rounded-lg" style={{
+                                    width: '140px',
+                                    backgroundColor: theme === 'cyberpunk' ? 'var(--stats-bg)' : 'var(--stats-bg)',
+                                    boxShadow: theme === 'cyberpunk' ? 'var(--neon-glow)' : '0 2px 4px rgba(0, 0, 0, 0.05)',
+                                    border: theme === 'cyberpunk' ? '1px solid var(--accent-color)' : '1px solid #e5e7eb',
+                                }}>
+                                    <div className="text-sm text-gray-400 mb-2">Server Status</div>
+                                    
+                                    {/* Status Light */}
+                                    <div className="relative flex items-center justify-center w-12 h-12 mb-1" style={{
+                                        backgroundColor: theme === 'cyberpunk' ? '#1a1a2e' : '#f3f4f6',
+                                        borderRadius: '50%',
+                                        border: theme === 'cyberpunk' ? '2px solid #333' : '2px solid #d1d5db',
+                                    }}>
+                                        <div className="w-8 h-8 rounded-full relative" style={{
+                                            backgroundColor: serverStatus === 'Running' ? '#4ade80' : '#ef4444',
+                                            boxShadow: theme === 'cyberpunk' 
+                                                ? `0 0 10px ${serverStatus === 'Running' ? '#4ade80' : '#ef4444'}, 0 0 15px ${serverStatus === 'Running' ? '#4ade80' : '#ef4444'}`
+                                                : 'none',
+                                            opacity: serverStatus === 'Running' ? '1' : '0.7',
+                                        }}>
+                                            {/* Pulsing animation for running server */}
+                                            {serverStatus === 'Running' && (
+                                                <div className="absolute inset-0 rounded-full animate-ping" style={{
+                                                    backgroundColor: '#4ade80',
+                                                    opacity: 0.3,
+                                                    animationDuration: '2s',
+                                                }}></div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Status Text */}
+                                    <span className="font-bold" style={{
+                                        color: serverStatus === 'Running' ? '#4ade80' : '#ef4444',
+                                        textShadow: theme === 'cyberpunk' 
+                                            ? `0 0 3px ${serverStatus === 'Running' ? '#4ade80' : '#ef4444'}`
+                                            : 'none',
+                                    }}>
+                                        {serverStatus}
+                                    </span>
+                                </div>
                             </div>
 
                             <div className="flex gap-4">

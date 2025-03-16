@@ -1,0 +1,73 @@
+# ==================
+# Base Image
+# ==================
+FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 AS base
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libstdc++6 \
+    libgomp1 \
+    curl \
+    unzip \
+    wget \
+    python3 \
+    python3-pip \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY shared/backend/requirements.txt /app/backend/requirements.txt
+WORKDIR /app/backend
+RUN pip install -r requirements.txt
+
+WORKDIR /app/frontend
+COPY shared/frontend/package.json shared/frontend/package-lock.json ./
+RUN npm install
+
+# Download and extract UndreamAI components
+RUN mkdir -p /app/server
+WORKDIR /app
+
+ARG VERSION=v1.1.10
+
+# Download UndreamAI components
+RUN wget https://github.com/undreamai/LlamaLib/releases/download/${VERSION}/undreamai-${VERSION}-llamacpp-full.zip && \
+    wget https://github.com/undreamai/LlamaLib/releases/download/${VERSION}/undreamai-${VERSION}-llamacpp.zip && \
+    wget https://github.com/undreamai/LlamaLib/releases/download/${VERSION}/undreamai-${VERSION}-server.zip && \
+    unzip undreamai-${VERSION}-llamacpp.zip -d /app/server/ && \
+    unzip undreamai-${VERSION}-server.zip -d /app/server/ && \
+    unzip undreamai-${VERSION}-llamacpp-full.zip -d /app/server/ && \
+    rm undreamai-${VERSION}-llamacpp.zip undreamai-${VERSION}-server.zip undreamai-${VERSION}-llamacpp-full.zip
+
+# ==================
+# Application
+# ==================
+FROM base AS final
+
+WORKDIR /app
+
+COPY shared/backend /app/backend
+COPY shared/frontend /app/frontend
+
+# Create entrypoint script
+RUN echo '#!/bin/bash' > /app/entrypoint.sh && \
+    echo 'set -e' >> /app/entrypoint.sh && \
+    echo 'cd /app/backend' >> /app/entrypoint.sh && \
+    echo 'uvicorn main:app --host 0.0.0.0 --port 8000 &' >> /app/entrypoint.sh && \
+    echo 'cd /app/frontend' >> /app/entrypoint.sh && \
+    echo 'npm run preview -- --host 0.0.0.0 --port 3000 &' >> /app/entrypoint.sh && \
+    echo 'if [ "$#" -eq 0 ]; then' >> /app/entrypoint.sh && \
+    echo '    # Keep container running' >> /app/entrypoint.sh && \
+    echo '    tail -f /dev/null' >> /app/entrypoint.sh && \
+    echo 'else' >> /app/entrypoint.sh && \
+    echo '    exec "$@"' >> /app/entrypoint.sh && \
+    echo 'fi' >> /app/entrypoint.sh && \
+    chmod +x /app/entrypoint.sh
+
+WORKDIR /app/frontend
+RUN npm run build
+
+EXPOSE 3000 8000
+
+ENTRYPOINT ["/app/entrypoint.sh"]

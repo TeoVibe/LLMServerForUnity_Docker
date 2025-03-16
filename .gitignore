@@ -1,6 +1,41 @@
 docker-compose/models/*
-!models/
-!models/.gitkeep
+\!models/
+\!models/.gitkeep
+
+# Shared models directory
+shared/models/*
+\!shared/models/.gitignore
+
+# UndreamAI binaries
 **/libundreamai_linux-cuda-cu12.2.0.so
 **/undreamai_server
 **/undreamai*
+
+# Node.js dependencies
+node_modules/
+
+# Python virtual environments
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Large model files
+*.gguf
+
+# Docker volumes
+models_volume/
+
+# IDE files
+.vscode/
+.idea/
+
+# Misc
+.DS_Store
+.env
+*.log

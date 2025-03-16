@@ -1,0 +1,27 @@
+version: '3.9'
+
+services:
+  undreamai_server:
+    build:
+      context: ..
+      dockerfile: shared/Dockerfile.runpod
+      args:
+        VERSION: v1.1.10
+    container_name: undreamai_server
+    ports:
+      - "3000:3000"
+      - "8000:8000"
+      - "22:22"
+      - "1337"
+    volumes:
+      - ./models:/models 
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
