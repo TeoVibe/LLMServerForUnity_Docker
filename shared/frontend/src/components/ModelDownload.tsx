@@ -80,10 +80,10 @@ function ModelDownload() {
 
             <div style={{ width: '500px', margin: '0 auto' }}>
                 {/* Dropdown for Predefined Models */}
-                <div className="mb-4">
+                <div className="mb-4 text-center" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                     <label className="block mb-1">Select a Pre-configured Model:</label>
                     <select
-                        style={getInputStyle()}
+                        style={{...getInputStyle(), textAlign: 'center', width: '300px'}}
                         onChange={(e) => {
                             const selected = Object.values(predefinedModels)
                                 .flat()
@@ -111,13 +111,13 @@ function ModelDownload() {
                 </div>
 
                 {/* Manual URL Input (Optional) */}
-                <div className="mb-4">
+                <div className="mb-4 text-center" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                     <label className="block mb-1">Or Enter Custom URL:</label>
                     <input
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                         placeholder="Model URL"
-                        style={getInputStyle()}
+                        style={{...getInputStyle(), textAlign: 'center', width: '300px'}}
                     />
                 </div>
 
@@ -131,6 +131,7 @@ function ModelDownload() {
                             boxShadow: theme === 'cyberpunk' ? 'var(--neon-glow)' : 'none',
                             border: theme === 'corporate' ? '1px solid #000' : 'none',
                             transition: 'all 0.2s ease-in-out',
+                            width: '180px',
                         }}
                     >
                         Download Model

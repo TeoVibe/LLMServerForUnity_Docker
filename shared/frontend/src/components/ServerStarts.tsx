@@ -147,7 +147,7 @@ function ServerStats() {
                 System Stats
             </h2>
             
-            <div style={{ width: '400px', margin: '0 auto', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '500px', margin: '0 auto', display: 'flex', justifyContent: 'center' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                     <MeterGauge value={stats.cpu} label="CPU Usage" />
                     <MeterGauge value={stats.ram} label="RAM Usage" />

@@ -21,6 +21,9 @@ app.add_middleware(
 server_process = None
 log_file = "/app/server_logs.txt"
 
+# Initialize allowlist from environment variable or default to "0.0.0.0"
+allowlist = os.environ.get("ALLOWLIST", "0.0.0.0")
+
 # -----------------------
 # Server Endpoints
 # -----------------------
@@ -148,3 +151,41 @@ async def list_models():
         raise HTTPException(status_code=404, detail="Models directory not found")
     models = os.listdir(models_dir)  # List all files without filtering
     return {"models": models}
+
+# -----------------------
+# Allowlist Endpoints
+# -----------------------
+@app.get("/allowlist/")
+async def get_allowlist():
+    return {"allowlist": allowlist}
+
+@app.post("/update-allowlist/")
+async def update_allowlist(data: dict):
+    global allowlist
+    
+    new_allowlist = data.get("allowlist")
+    if not new_allowlist:
+        raise HTTPException(status_code=400, detail="New allowlist must be provided")
+    
+    # Validate IP format (basic validation)
+    try:
+        ips = new_allowlist.split(",")
+        for ip in ips:
+            ip = ip.strip()
+            octets = ip.split(".")
+            if len(octets) != 4:
+                raise ValueError("Invalid IP format")
+            for octet in octets:
+                value = int(octet)
+                if value < 0 or value > 255:
+                    raise ValueError("Invalid IP value")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid IP format: {str(e)}")
+    
+    # Update the allowlist
+    allowlist = new_allowlist
+    
+    # In a real-world scenario, we'd update some configuration file or restart services
+    # Here we just update the in-memory variable
+    
+    return {"status": "Allowlist updated successfully", "allowlist": allowlist}

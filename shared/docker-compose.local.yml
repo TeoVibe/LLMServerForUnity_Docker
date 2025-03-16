@@ -17,6 +17,7 @@ services:
       - ./models:/models 
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+      - ALLOWLIST=0.0.0.0
     deploy:
       resources:
         reservations:

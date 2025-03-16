@@ -2,11 +2,12 @@ import { useState } from 'react';
 import ConfigForm from './components/ConfigForm';
 import ModelDownload from './components/ModelDownload';
 import ServerStats from './components/ServerStarts';
+import AllowlistForm from './components/AllowlistForm';
 import { ThemeProvider } from './context/ThemeContext';
 import { useTheme } from './context/useTheme';
 
 function App() {
-    const [activeTab, setActiveTab] = useState<'config' | 'logs'>('config');
+    const [activeTab, setActiveTab] = useState<'config' | 'logs' | 'allowlist'>('config');
     
     return (
         <ThemeProvider>
@@ -20,8 +21,8 @@ function AppContent({
     activeTab, 
     setActiveTab 
 }: { 
-    activeTab: 'config' | 'logs'; 
-    setActiveTab: (tab: 'config' | 'logs') => void;
+    activeTab: 'config' | 'logs' | 'allowlist'; 
+    setActiveTab: (tab: 'config' | 'logs' | 'allowlist') => void;
 }) {
     const { theme } = useTheme();
     
@@ -37,6 +38,7 @@ function AppContent({
             <div className="w-[900px]"> {/* Fixed width container instead of max-width */}
                 <ConfigForm activeTab={activeTab} setActiveTab={setActiveTab} />
                 {activeTab === 'config' && <ModelDownload />}
+                {activeTab === 'allowlist' && <AllowlistForm />}
                 <ServerStats />
             </div>
         </div>
