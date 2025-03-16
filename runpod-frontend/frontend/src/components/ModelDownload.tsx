@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTheme } from '../context/useTheme';
 
 const predefinedModels = {
     "Medium models": [
@@ -18,8 +19,35 @@ const predefinedModels = {
 };
 
 function ModelDownload() {
+    const { theme } = useTheme();
     const [url, setUrl] = useState('');
     const [selectedModel, setSelectedModel] = useState<{ url: string; filename: string } | null>(null);
+
+    // Theme-based styles
+    const getContainerStyle = () => {
+        return theme === 'cyberpunk'
+            ? {
+                backgroundColor: 'var(--primary-bg)',
+                boxShadow: 'var(--neon-glow)',
+                border: '1px solid var(--accent-color)'
+              }
+            : {
+                backgroundColor: 'var(--primary-bg)',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #e5e7eb'
+              };
+    };
+
+    const getInputStyle = () => {
+        return {
+            width: '100%',
+            padding: '0.5rem',
+            borderRadius: '0.25rem',
+            backgroundColor: 'var(--input-bg)',
+            color: 'var(--text-color)',
+            border: theme === 'cyberpunk' ? '1px solid #666' : '1px solid #d1d5db'
+        };
+    };
 
     const handleDownload = async () => {
         const downloadData = selectedModel
@@ -40,15 +68,22 @@ function ModelDownload() {
     };
 
     return (
-        <div className="p-4 space-y-4 bg-gray-800 text-white rounded-lg shadow-lg mt-6" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
-            <h2 className="text-2xl font-bold text-center mb-4">Download GGUF Model</h2>
+        <div className="p-4 space-y-4 rounded-lg shadow-lg mt-6" style={{ 
+            width: '100%', 
+            maxWidth: '800px', 
+            margin: '0 auto',
+            ...getContainerStyle()
+        }}>
+            <h2 className={`text-2xl font-bold text-center mb-4 ${theme === 'cyberpunk' ? 'glow-text' : ''}`}>
+                Download GGUF Model
+            </h2>
 
             <div style={{ width: '500px', margin: '0 auto' }}>
                 {/* Dropdown for Predefined Models */}
                 <div className="mb-4">
                     <label className="block mb-1">Select a Pre-configured Model:</label>
                     <select
-                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.25rem', backgroundColor: '#374151', color: 'white' }}
+                        style={getInputStyle()}
                         onChange={(e) => {
                             const selected = Object.values(predefinedModels)
                                 .flat()
@@ -82,14 +117,21 @@ function ModelDownload() {
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                         placeholder="Model URL"
-                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.25rem', backgroundColor: '#374151', color: 'white' }}
+                        style={getInputStyle()}
                     />
                 </div>
 
                 <div className="flex justify-center mt-6">
                     <button 
                         onClick={handleDownload} 
-                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                        className="px-4 py-2 rounded-md"
+                        style={{ 
+                            backgroundColor: 'var(--button-primary)',
+                            color: '#ffffff', // Explicitly setting white text color
+                            boxShadow: theme === 'cyberpunk' ? 'var(--neon-glow)' : 'none',
+                            border: theme === 'corporate' ? '1px solid #000' : 'none',
+                            transition: 'all 0.2s ease-in-out',
+                        }}
                     >
                         Download Model
                     </button>

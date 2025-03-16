@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTheme } from '../context/useTheme';
 
 interface ConfigFormProps {
     activeTab: 'config' | 'logs';
@@ -6,6 +7,7 @@ interface ConfigFormProps {
 }
 
 const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
+    const { theme, toggleTheme } = useTheme();
     const [model, setModel] = useState('model');
     const [availableModels, setAvailableModels] = useState<string[]>([]);
     const [host, setHost] = useState('0.0.0.0');
@@ -16,6 +18,65 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
     const [serverStatus, setServerStatus] = useState('Unknown');
     const [logs, setLogs] = useState('');
 
+    // Theme-based styles
+    const getContainerStyle = () => {
+        return theme === 'cyberpunk'
+            ? {
+                backgroundColor: 'var(--primary-bg)',
+                boxShadow: 'var(--neon-glow)',
+                border: '1px solid var(--accent-color)'
+              }
+            : {
+                backgroundColor: 'var(--primary-bg)',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #e5e7eb'
+              };
+    };
+
+    const getInputStyle = () => {
+        return {
+            width: "220px",
+            padding: "0.5rem",
+            borderRadius: "0.25rem",
+            backgroundColor: "var(--input-bg)",
+            color: "var(--text-color)",
+            border: theme === 'cyberpunk' ? '1px solid #666' : '1px solid #d1d5db'
+        };
+    };
+
+    const getTabButtonStyle = (isActive: boolean) => {
+        const baseStyle = {
+            width: '150px',
+            margin: '0 auto',
+            transition: 'all 0.2s ease-in-out'
+        };
+        
+        if (isActive) {
+            return theme === 'cyberpunk' 
+                ? { 
+                    ...baseStyle, 
+                    backgroundColor: 'var(--accent-color)',
+                    color: 'white',
+                    boxShadow: 'var(--neon-glow)'
+                }
+                : { 
+                    ...baseStyle, 
+                    backgroundColor: '#000000',
+                    color: 'white',
+                    border: '1px solid #000'
+                };
+        }
+        
+        return theme === 'cyberpunk'
+            ? { ...baseStyle, backgroundColor: '#4a4a5a', color: 'white' }
+            : { 
+                ...baseStyle, 
+                backgroundColor: '#f3f4f6', 
+                color: '#333333',
+                border: '1px solid #000',
+              };
+    };
+
     // Poll for server status every 3 seconds
     useEffect(() => {
         const checkStatus = async () => {
@@ -23,7 +84,8 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                 const response = await fetch('http://localhost:8000/stats/');
                 const data = await response.json();
                 setServerStatus(data.server_running ? 'Running' : 'Stopped');
-            } catch (error) {
+            } catch {
+                // Any error means the server is not running
                 setServerStatus('Stopped');
             }
         };
@@ -40,7 +102,8 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                 const response = await fetch('http://localhost:8000/logs/');
                 const data = await response.text();
                 setLogs(data);
-            } catch (error) {
+            } catch {
+                // Any error means we can't fetch logs
                 setLogs('Error fetching logs.');
             }
         };
@@ -107,29 +170,65 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
         }
     };
 
+    // Theme toggle icons
+    const SunIcon = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+    );
+
+    const MoonIcon = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    );
+
     return (
-        <div className="p-4 space-y-4 bg-gray-800 text-white rounded-lg shadow-lg" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
-            <h1 className="text-3xl font-bold text-center mb-4">
+        <div className="p-4 space-y-4 rounded-lg shadow-lg" style={{ 
+            width: '100%', 
+            maxWidth: '800px', 
+            margin: '0 auto',
+            ...getContainerStyle()
+        }}>
+            <h1 className={`text-3xl font-bold text-center mb-4 ${theme === 'cyberpunk' ? 'glow-text' : ''}`}>
                 UndreamAI Server Control Panel
             </h1>
 
-            {/* Tabs for switching views */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', width: '100%', marginBottom: '1.5rem', marginTop: '1rem' }}>
+            {/* Tabs for switching views with theme toggle */}
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', width: '100%', marginBottom: '1.5rem', marginTop: '1rem' }}>
                 <button
-                    className={`px-6 py-2 rounded-md text-center ${
-                        activeTab === 'config' ? 'bg-blue-500 text-white' : 'bg-gray-600'
-                    }`}
+                    className={`px-6 py-2 rounded-md text-center`}
                     onClick={() => setActiveTab('config')}
-                    style={{ width: '150px', margin: '0 auto' }}
+                    style={getTabButtonStyle(activeTab === 'config')}
                 >
                     Configuration
                 </button>
+                
+                {/* Theme Toggle Button */}
+                <button 
+                    className="theme-toggle" 
+                    onClick={toggleTheme}
+                    aria-label={`Switch to ${theme === 'cyberpunk' ? 'corporate' : 'cyberpunk'} theme`}
+                    style={{
+                        color: theme === 'corporate' ? '#000' : '#fff',
+                        border: theme === 'corporate' ? '1px solid #000' : 'none',
+                    }}
+                >
+                    {theme === 'cyberpunk' ? <SunIcon /> : <MoonIcon />}
+                </button>
+                
                 <button
-                    className={`px-6 py-2 rounded-md text-center ${
-                        activeTab === 'logs' ? 'bg-blue-500 text-white' : 'bg-gray-600'
-                    }`}
+                    className={`px-6 py-2 rounded-md text-center`}
                     onClick={() => setActiveTab('logs')}
-                    style={{ width: '150px', margin: '0 auto' }}
+                    style={getTabButtonStyle(activeTab === 'logs')}
                 >
                     Logs
                 </button>
@@ -149,13 +248,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                                     type="text"
                                     value={model}
                                     onChange={(e) => setModel(e.target.value)}
-                                    style={{
-                                        width: "220px",
-                                        padding: "0.5rem",
-                                        borderRadius: "0.25rem",
-                                        backgroundColor: "#374151",
-                                        color: "white"
-                                    }}
+                                    style={getInputStyle()}
                                 />
                             </div>
                             
@@ -164,13 +257,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                                 <select
                                     onChange={(e) => setModel(e.target.value)}
                                     value={model}
-                                    style={{
-                                        width: "220px",
-                                        padding: "0.5rem",
-                                        borderRadius: "0.25rem",
-                                        backgroundColor: "#374151",
-                                        color: "white"
-                                    }}
+                                    style={getInputStyle()}
                                 >
                                     <option value="">-- Select --</option>
                                     {availableModels.map((m) => (
@@ -192,8 +279,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                                     type="text"
                                     value={host}
                                     onChange={(e) => setHost(e.target.value)}
-                                    className="border p-2 rounded bg-gray-700 text-white w-full"
-                                    style={{ width: '220px' }}
+                                    style={{ ...getInputStyle(), width: '220px' }}
                                 />
                             </div>
 
@@ -203,8 +289,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                                     type="number"
                                     value={port}
                                     onChange={(e) => setPort(Number(e.target.value))}
-                                    className="border p-2 rounded bg-gray-700 text-white"
-                                    style={{ width: '220px' }}
+                                    style={{ ...getInputStyle(), width: '220px' }}
                                 />
                             </div>
 
@@ -214,8 +299,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                                     type="number"
                                     value={ngl}
                                     onChange={(e) => setNgl(Number(e.target.value))}
-                                    className="border p-2 rounded bg-gray-700 text-white"
-                                    style={{ width: '220px' }}
+                                    style={{ ...getInputStyle(), width: '220px' }}
                                 />
                             </div>
 
@@ -225,8 +309,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                                     type="text"
                                     value={template}
                                     onChange={(e) => setTemplate(e.target.value)}
-                                    className="border p-2 rounded bg-gray-700 text-white"
-                                    style={{ width: '220px' }}
+                                    style={{ ...getInputStyle(), width: '220px' }}
                                 />
                             </div>
                         </div>
@@ -237,8 +320,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
                                 type="text"
                                 value={customParams}
                                 onChange={(e) => setCustomParams(e.target.value)}
-                                className="border p-2 rounded bg-gray-700 text-white"
-                                style={{ width: '100%', maxWidth: '500px' }}
+                                style={{ ...getInputStyle(), width: '100%', maxWidth: '500px' }}
                             />
                         </div>
 
@@ -258,15 +340,29 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
 
                             <div className="flex gap-4">
                                 <button
-                                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                                    className="px-4 py-2 rounded-md"
                                     onClick={handleStartServer}
+                                    style={{ 
+                                        backgroundColor: 'var(--button-primary)',
+                                        color: '#ffffff', // Explicitly setting white text color
+                                        boxShadow: theme === 'cyberpunk' ? 'var(--neon-glow)' : 'none',
+                                        border: theme === 'corporate' ? '1px solid #000' : 'none',
+                                        transition: 'all 0.2s ease-in-out',
+                                    }}
                                 >
                                     Start Server
                                 </button>
 
                                 <button
-                                    className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                                    className="px-4 py-2 rounded-md"
                                     onClick={handleStopServer}
+                                    style={{ 
+                                        backgroundColor: 'var(--button-danger)',
+                                        color: '#ffffff', // Explicitly setting white text color
+                                        boxShadow: theme === 'cyberpunk' ? '0 0 5px #e53e3e, 0 0 10px rgba(229, 62, 62, 0.5)' : 'none',
+                                        border: theme === 'corporate' ? '1px solid #000' : 'none',
+                                        transition: 'all 0.2s ease-in-out',
+                                    }}
                                 >
                                     Stop Server
                                 </button>
@@ -279,8 +375,15 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
             {/* Logs Tab */}
             {activeTab === 'logs' && (
                 <div
-                    className="border p-4 mt-4 rounded bg-black text-white whitespace-pre overflow-y-scroll max-h-[500px]"
-                    style={{ maxHeight: '500px', overflowY: 'scroll' }}
+                    className="border p-4 mt-4 rounded whitespace-pre overflow-y-scroll max-h-[500px]"
+                    style={{ 
+                        maxHeight: '500px', 
+                        overflowY: 'scroll',
+                        backgroundColor: theme === 'cyberpunk' ? '#1a1a2e' : '#f8f9fa',
+                        color: theme === 'cyberpunk' ? 'white' : '#333',
+                        border: theme === 'cyberpunk' ? '1px solid var(--accent-color)' : '1px solid #e5e7eb',
+                        boxShadow: theme === 'cyberpunk' ? 'var(--neon-glow)' : 'none',
+                    }}
                 >
                     {logs || 'No logs available.'}
                 </div>
