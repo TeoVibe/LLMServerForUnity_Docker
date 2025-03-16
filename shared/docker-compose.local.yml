@@ -8,6 +8,7 @@ services:
       args:
         VERSION: v1.1.10
     container_name: undreamai_server
+    network_mode: host
     ports:
       - "3000:3000"
       - "8000:8000"
