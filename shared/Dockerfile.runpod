@@ -29,20 +29,16 @@ WORKDIR /app/frontend
 COPY shared/frontend/package.json shared/frontend/package-lock.json ./
 RUN npm install
 
-# Download and extract UndreamAI components
 RUN mkdir -p /app/server
 WORKDIR /app
 
 ARG VERSION=v1.1.10
 
-# Download UndreamAI components
-RUN wget https://github.com/undreamai/LlamaLib/releases/download/${VERSION}/undreamai-${VERSION}-llamacpp-full.zip && \
-    wget https://github.com/undreamai/LlamaLib/releases/download/${VERSION}/undreamai-${VERSION}-llamacpp.zip && \
-    wget https://github.com/undreamai/LlamaLib/releases/download/${VERSION}/undreamai-${VERSION}-server.zip && \
-    unzip undreamai-${VERSION}-llamacpp.zip -d /app/server/ && \
-    unzip undreamai-${VERSION}-server.zip -d /app/server/ && \
-    unzip undreamai-${VERSION}-llamacpp-full.zip -d /app/server/ && \
-    rm undreamai-${VERSION}-llamacpp.zip undreamai-${VERSION}-server.zip undreamai-${VERSION}-llamacpp-full.zip
+COPY shared/binaries/* /app/
+
+RUN unzip ./undreamai-${VERSION}-llamacpp.zip -d /app/server/ && \
+    unzip ./undreamai-${VERSION}-server.zip -d /app/server/ && \
+    rm ./undreamai-${VERSION}-llamacpp.zip ./undreamai-${VERSION}-server.zip
 
 # ==================
 # Application

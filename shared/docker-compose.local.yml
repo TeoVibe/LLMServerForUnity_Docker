@@ -5,8 +5,7 @@ services:
     build:
       context: ..
       dockerfile: shared/Dockerfile.local
-      args:
-        VERSION: v1.1.10
+    image: undreamai_server:v1.0.0
     container_name: undreamai_server
     network_mode: host
     ports:

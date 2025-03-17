@@ -5,8 +5,7 @@ services:
     build:
       context: ..
       dockerfile: shared/Dockerfile.runpod
-      args:
-        VERSION: v1.1.10-runpod
+    image: undreamai_server:v1.0.0-runpod
     container_name: undreamai_server
     network_mode: host
     ports:
