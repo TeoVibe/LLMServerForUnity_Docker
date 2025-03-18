@@ -6,7 +6,7 @@ services:
       context: ..
       dockerfile: shared/Dockerfile.local
     image: undreamai_server:v1.0.0
-    container_name: undreamai_server
+    container_name: teocholakov/undreamai_server:v1.0.0
     network_mode: host
     ports:
       - "3000:3000"
