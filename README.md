@@ -7,13 +7,15 @@ This repository contains Docker configurations for running the UndreamAI LLM ser
 
 ## Quick Start
 
-**./restart for local deployment**  
+**./restart for local deployment** 
+
+[DockerHub links](https://hub.docker.com/repository/docker/teocholakov/undream_server/general); v1.0.0 is used for local deployments.
 
 ## RunPod
 
 **/shared/docker-compose.runpod.yml**  
 
-[RunPod Plug and Play Deployment Template](https://www.runpod.io/console/explore/cgknslt3bl)  
+[RunPod Plug and Play Deployment Template](https://www.runpod.io/console/explore/08cls01ac9)  
 [New to RunPod? Referral Link](https://runpod.io?ref=muhg2w55)  
 
 ## Related Links
