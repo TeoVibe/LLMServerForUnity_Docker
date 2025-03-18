@@ -5,7 +5,7 @@ services:
     build:
       context: ..
       dockerfile: shared/Dockerfile.runpod
-    image: teocholakov/undreamai_server:v1.0.0-runpod
+    image: teocholakov/undreamai_server:v1.1.0-runpod
     container_name: undreamai_server
     network_mode: host
     ports:

@@ -86,11 +86,17 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
               };
     };
 
+    // Helper function to get the API base URL
+    const getApiBaseUrl = () => {
+        // In production, use relative URLs that will work in any environment
+        return '/api';
+    };
+
     // Poll for server status every 3 seconds
     useEffect(() => {
         const checkStatus = async () => {
             try {
-                const response = await fetch('http://localhost:8000/stats/');
+                const response = await fetch(`${getApiBaseUrl()}/stats/`);
                 const data = await response.json();
                 setServerStatus(data.server_running ? 'Running' : 'Stopped');
             } catch {
@@ -108,7 +114,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
     useEffect(() => {
         const fetchLogs = async () => {
             try {
-                const response = await fetch('http://localhost:8000/logs/');
+                const response = await fetch(`${getApiBaseUrl()}/logs/`);
                 const data = await response.text();
                 setLogs(data);
             } catch {
@@ -128,7 +134,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
     useEffect(() => {
         const fetchModels = async () => {
             try {
-                const response = await fetch('http://localhost:8000/list-models/');
+                const response = await fetch(`${getApiBaseUrl()}/list-models/`);
                 const data = await response.json();
                 setAvailableModels(data.models);
             } catch (error) {
@@ -152,7 +158,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
         };
 
         try {
-            const response = await fetch('http://localhost:8000/start-server/', {
+            const response = await fetch(`${getApiBaseUrl()}/start-server/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(commandParams)
@@ -186,7 +192,7 @@ const ConfigForm = ({ activeTab, setActiveTab }: ConfigFormProps) => {
         setOperationStatus(null);
         
         try {
-            const response = await fetch('http://localhost:8000/stop-server/', {
+            const response = await fetch(`${getApiBaseUrl()}/stop-server/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });

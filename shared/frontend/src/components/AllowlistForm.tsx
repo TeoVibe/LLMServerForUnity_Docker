@@ -44,11 +44,17 @@ const AllowlistForm = () => {
         };
     };
 
+    // Helper function to get the API base URL
+    const getApiBaseUrl = () => {
+        // In production, use relative URLs that will work in any environment
+        return '/api';
+    };
+
     // Fetch current allowlist on component mount
     useEffect(() => {
         const fetchAllowlist = async () => {
             try {
-                const response = await fetch('http://localhost:8000/allowlist/');
+                const response = await fetch(`${getApiBaseUrl()}/allowlist/`);
                 if (response.ok) {
                     const data = await response.json();
                     setAllowlist(data.allowlist);
@@ -74,7 +80,7 @@ const AllowlistForm = () => {
         setUpdateMessage('');
 
         try {
-            const response = await fetch('http://localhost:8000/update-allowlist/', {
+            const response = await fetch(`${getApiBaseUrl()}/update-allowlist/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ allowlist: newAllowlist })
