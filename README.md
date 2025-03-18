@@ -2,9 +2,6 @@
 
 This repository contains Docker configurations for running the UndreamAI LLM server for Unity, including a web-based management interface.
 
-## Repository Structure
-
-
 ## Quick Start
 
 **./restart for local deployment** 
