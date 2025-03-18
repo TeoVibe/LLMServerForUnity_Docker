@@ -57,7 +57,9 @@ RUN echo '#!/bin/bash' > /app/entrypoint.sh && \
     echo 'cd /app/backend' >> /app/entrypoint.sh && \
     echo 'uvicorn main:app --host 0.0.0.0 --port 8000 &' >> /app/entrypoint.sh && \
     echo 'cd /app/frontend' >> /app/entrypoint.sh && \
+    echo 'echo "Starting frontend with API proxy..."' >> /app/entrypoint.sh && \
     echo 'npm run preview -- --host 0.0.0.0 --port 3000 &' >> /app/entrypoint.sh && \
+    echo 'echo "Server started on port 3000 with API proxy to backend port 8000"' >> /app/entrypoint.sh && \
     echo 'if [ "$#" -eq 0 ]; then' >> /app/entrypoint.sh && \
     echo '    exec /usr/sbin/sshd -D' >> /app/entrypoint.sh && \
     echo 'else' >> /app/entrypoint.sh && \

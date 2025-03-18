@@ -57,6 +57,12 @@ function ModelDownload() {
         };
     };
 
+    // Helper function to get the API base URL
+    const getApiBaseUrl = () => {
+        // In production, use relative URLs that will work in any environment
+        return '/api';
+    };
+
     const handleDownload = async () => {
         setIsDownloading(true);
         setDownloadStatus(null);
@@ -66,7 +72,7 @@ function ModelDownload() {
             : { url };
 
         try {
-            const response = await fetch('http://localhost:8000/download-model/', {
+            const response = await fetch(`${getApiBaseUrl()}/download-model/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(downloadData)
