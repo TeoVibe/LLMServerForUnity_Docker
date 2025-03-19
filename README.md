@@ -15,6 +15,12 @@ This repository contains Docker configurations for running the UndreamAI LLM ser
 [RunPod Plug and Play Deployment Template](https://www.runpod.io/console/explore/08cls01ac9)  
 [New to RunPod? Referral Link](https://runpod.io?ref=muhg2w55)  
 
+## Roadmap
+
+- Port IP Whitelisting for RunPod.
+- Frontend improvements
+- 1.2.3 server version fix
+
 ## Related Links
 
 [UndreamAI LLM for Unity Asset Store Page](https://assetstore.unity.com/packages/tools/ai-ml-integration/llm-for-unity-273604)  
