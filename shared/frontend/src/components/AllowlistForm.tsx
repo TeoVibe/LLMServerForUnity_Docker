@@ -3,8 +3,10 @@ import { useTheme } from '../context/useTheme';
 
 const AllowlistForm = () => {
     const { theme } = useTheme();
-    const [allowlist, setAllowlist] = useState('0.0.0.0');
-    const [newAllowlist, setNewAllowlist] = useState('');
+    const [controlPanelAllowlist, setControlPanelAllowlist] = useState('0.0.0.0');
+    const [llmServerAllowlist, setLlmServerAllowlist] = useState('0.0.0.0');
+    const [newControlPanelAllowlist, setNewControlPanelAllowlist] = useState('');
+    const [newLlmServerAllowlist, setNewLlmServerAllowlist] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
     const [updateMessage, setUpdateMessage] = useState('');
 
@@ -50,29 +52,51 @@ const AllowlistForm = () => {
         return '/api';
     };
 
-    // Fetch current allowlist on component mount
+    // Fetch current allowlists on component mount
     useEffect(() => {
-        const fetchAllowlist = async () => {
+        const fetchAllowlists = async () => {
             try {
                 const response = await fetch(`${getApiBaseUrl()}/allowlist/`);
                 if (response.ok) {
                     const data = await response.json();
-                    setAllowlist(data.allowlist);
-                    setNewAllowlist(data.allowlist);
+                    // Handle both new and legacy API responses
+                    if (data.control_panel_allowlist !== undefined) {
+                        setControlPanelAllowlist(data.control_panel_allowlist);
+                        setNewControlPanelAllowlist(data.control_panel_allowlist);
+                        setLlmServerAllowlist(data.llm_server_allowlist);
+                        setNewLlmServerAllowlist(data.llm_server_allowlist);
+                    } else if (data.allowlist !== undefined) {
+                        // Legacy format - use same value for both
+                        setControlPanelAllowlist(data.allowlist);
+                        setNewControlPanelAllowlist(data.allowlist);
+                        setLlmServerAllowlist(data.allowlist);
+                        setNewLlmServerAllowlist(data.allowlist);
+                    }
                 }
             } catch (error) {
-                console.error('Failed to fetch allowlist', error);
+                console.error('Failed to fetch allowlists', error);
             }
         };
         
-        fetchAllowlist();
+        fetchAllowlists();
     }, []);
 
-    const handleUpdateAllowlist = async () => {
-        // Validation: Check if it's a comma-separated list of valid IPs
+    // Validate IP format
+    const validateIpFormat = (ipList: string) => {
         const ipPattern = /^((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(,\s*\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})*)$/;
-        if (!ipPattern.test(newAllowlist)) {
-            setUpdateMessage('Invalid format. Please use comma-separated IP addresses (e.g., 192.168.1.1,10.0.0.1)');
+        return ipPattern.test(ipList);
+    };
+
+    const handleUpdateAllowlists = async () => {
+        // Validate control panel allowlist
+        if (!validateIpFormat(newControlPanelAllowlist)) {
+            setUpdateMessage('Invalid Control Panel allowlist format. Please use comma-separated IP addresses.');
+            return;
+        }
+
+        // Validate LLM server allowlist
+        if (!validateIpFormat(newLlmServerAllowlist)) {
+            setUpdateMessage('Invalid LLM Server allowlist format. Please use comma-separated IP addresses.');
             return;
         }
 
@@ -83,19 +107,24 @@ const AllowlistForm = () => {
             const response = await fetch(`${getApiBaseUrl()}/update-allowlist/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ allowlist: newAllowlist })
+                body: JSON.stringify({ 
+                    control_panel_allowlist: newControlPanelAllowlist,
+                    llm_server_allowlist: newLlmServerAllowlist
+                })
             });
 
             if (response.ok) {
-                setAllowlist(newAllowlist);
-                setUpdateMessage('Allowlist updated successfully!');
+                const data = await response.json();
+                setControlPanelAllowlist(data.control_panel_allowlist);
+                setLlmServerAllowlist(data.llm_server_allowlist);
+                setUpdateMessage('Allowlists updated successfully! Server restart required for LLM server changes to take effect.');
             } else {
                 const errorData = await response.json();
-                setUpdateMessage(`Failed to update allowlist: ${errorData.detail}`);
+                setUpdateMessage(`Failed to update allowlists: ${errorData.detail}`);
             }
         } catch (error) {
-            setUpdateMessage('Failed to update allowlist. Please try again.');
-            console.error('Error updating allowlist:', error);
+            setUpdateMessage('Failed to update allowlists. Please try again.');
+            console.error('Error updating allowlists:', error);
         } finally {
             setIsUpdating(false);
         }
@@ -111,24 +140,48 @@ const AllowlistForm = () => {
             <h2 className="text-2xl font-bold text-center">IP Allowlist Configuration</h2>
             
             <div className="max-w-[600px] mx-auto text-center">
-                <div className="mb-10" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                    <p className="mb-4">Current Allowlist:</p>
+                <div className="mb-8" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                    <p className="mb-3">Control Panel Allowlist (current):</p>
                     <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-md break-words mx-auto" style={{
                         backgroundColor: theme === 'cyberpunk' ? '#1a1a2e' : '#f8f9fa',
                         border: theme === 'cyberpunk' ? '1px solid var(--accent-color)' : '1px solid #e5e7eb',
                         textAlign: 'center',
                         width: '300px'
                     }}>
-                        {allowlist || '0.0.0.0'}
+                        {controlPanelAllowlist || '0.0.0.0'}
+                    </div>
+                </div>
+                
+                <div className="mb-8" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                    <label className="block mb-2">New Control Panel Allowlist:</label>
+                    <input
+                        type="text"
+                        value={newControlPanelAllowlist}
+                        onChange={(e) => setNewControlPanelAllowlist(e.target.value)}
+                        placeholder="e.g., 0.0.0.0,192.168.1.1,10.0.0.1"
+                        style={{...getInputStyle(), textAlign: 'center', width: '300px'}}
+                        className="mb-2"
+                    />
+                </div>
+                
+                <div className="mb-8" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                    <p className="mb-3">LLM Server Allowlist (current):</p>
+                    <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-md break-words mx-auto" style={{
+                        backgroundColor: theme === 'cyberpunk' ? '#1a1a2e' : '#f8f9fa',
+                        border: theme === 'cyberpunk' ? '1px solid var(--accent-color)' : '1px solid #e5e7eb',
+                        textAlign: 'center',
+                        width: '300px'
+                    }}>
+                        {llmServerAllowlist || '0.0.0.0'}
                     </div>
                 </div>
                 
                 <div className="mb-10" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                    <label className="block mb-2">New Allowlist (comma-separated IPs):</label>
+                    <label className="block mb-2">New LLM Server Allowlist:</label>
                     <input
                         type="text"
-                        value={newAllowlist}
-                        onChange={(e) => setNewAllowlist(e.target.value)}
+                        value={newLlmServerAllowlist}
+                        onChange={(e) => setNewLlmServerAllowlist(e.target.value)}
                         placeholder="e.g., 0.0.0.0,192.168.1.1,10.0.0.1"
                         style={{...getInputStyle(), textAlign: 'center', width: '300px'}}
                         className="mb-2"
@@ -156,11 +209,13 @@ const AllowlistForm = () => {
                 <div style={{display: 'flex', justifyContent: 'center', width: '100%', margin: '2rem auto'}}>
                     <button
                         className="px-6 py-2 rounded-md mx-auto"
-                        onClick={handleUpdateAllowlist}
-                        disabled={isUpdating || allowlist === newAllowlist}
+                        onClick={handleUpdateAllowlists}
+                        disabled={isUpdating || 
+                                 (controlPanelAllowlist === newControlPanelAllowlist && 
+                                  llmServerAllowlist === newLlmServerAllowlist)}
                         style={{...getButtonStyle(), width: '180px'}}
                     >
-                        {isUpdating ? 'Updating...' : 'Update Allowlist'}
+                        {isUpdating ? 'Updating...' : 'Update Allowlists'}
                     </button>
                 </div>
                 
@@ -169,9 +224,12 @@ const AllowlistForm = () => {
                     border: theme === 'cyberpunk' ? '1px solid var(--accent-color)' : '1px solid #e5e7eb',
                 }}>
                     <p className="text-sm mb-4 text-center" style={{maxWidth: '400px', margin: '0 auto 1rem auto'}}>
-                        <li>Use <code>0.0.0.0</code> to allow connections from any IP</li>
-                        <li>For restricted access, enter specific IPs separated by commas</li>
-                        <li>Changes take effect after server restart</li>                    </p>
+                        <ul style={{listStyleType: 'none', padding: 0}}>
+                            <li>Use <code>0.0.0.0</code> to allow connections from any IP</li>
+                            <li>For restricted access, enter specific IPs separated by commas</li>
+                            <li>Changes take effect after server restart</li>
+                        </ul>
+                    </p>
                 </div>
             </div>
         </div>

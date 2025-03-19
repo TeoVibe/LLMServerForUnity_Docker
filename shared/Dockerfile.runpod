@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nvtop \
     python3 \
     python3-pip \
+    iptables \
+    iproute2 \
     && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
@@ -27,7 +29,7 @@ RUN pip install -r requirements.txt
 
 WORKDIR /app/frontend
 COPY shared/frontend/package.json shared/frontend/package-lock.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 RUN mkdir -p /app/server
 WORKDIR /app
@@ -54,6 +56,27 @@ COPY shared/frontend /app/frontend
 RUN echo '#!/bin/bash' > /app/entrypoint.sh && \
     echo 'set -e' >> /app/entrypoint.sh && \
     echo 'mkdir -p /run/sshd' >> /app/entrypoint.sh && \
+    echo '' >> /app/entrypoint.sh && \
+    echo '# Get environment variables for allowlists' >> /app/entrypoint.sh && \
+    echo 'CONTROL_PANEL_ALLOWLIST=${CONTROL_PANEL_ALLOWLIST:-0.0.0.0}' >> /app/entrypoint.sh && \
+    echo 'LLM_SERVER_ALLOWLIST=${LLM_SERVER_ALLOWLIST:-0.0.0.0}' >> /app/entrypoint.sh && \
+    echo 'ALLOWLIST=${ALLOWLIST:-0.0.0.0}' >> /app/entrypoint.sh && \
+    echo '' >> /app/entrypoint.sh && \
+    echo '# If legacy ALLOWLIST is set but specific allowlists are not, use ALLOWLIST for both' >> /app/entrypoint.sh && \
+    echo 'if [ "$ALLOWLIST" != "0.0.0.0" ] && [ "$CONTROL_PANEL_ALLOWLIST" = "0.0.0.0" ]; then' >> /app/entrypoint.sh && \
+    echo '    CONTROL_PANEL_ALLOWLIST=$ALLOWLIST' >> /app/entrypoint.sh && \
+    echo 'fi' >> /app/entrypoint.sh && \
+    echo 'if [ "$ALLOWLIST" != "0.0.0.0" ] && [ "$LLM_SERVER_ALLOWLIST" = "0.0.0.0" ]; then' >> /app/entrypoint.sh && \
+    echo '    LLM_SERVER_ALLOWLIST=$ALLOWLIST' >> /app/entrypoint.sh && \
+    echo 'fi' >> /app/entrypoint.sh && \
+    echo '' >> /app/entrypoint.sh && \
+    echo '# Export environment variables for the backend' >> /app/entrypoint.sh && \
+    echo 'export CONTROL_PANEL_ALLOWLIST=$CONTROL_PANEL_ALLOWLIST' >> /app/entrypoint.sh && \
+    echo 'export LLM_SERVER_ALLOWLIST=$LLM_SERVER_ALLOWLIST' >> /app/entrypoint.sh && \
+    echo '' >> /app/entrypoint.sh && \
+    echo 'echo "Control Panel Allowlist: $CONTROL_PANEL_ALLOWLIST"' >> /app/entrypoint.sh && \
+    echo 'echo "LLM Server Allowlist: $LLM_SERVER_ALLOWLIST"' >> /app/entrypoint.sh && \
+    echo '' >> /app/entrypoint.sh && \
     echo 'cd /app/backend' >> /app/entrypoint.sh && \
     echo 'uvicorn main:app --host 0.0.0.0 --port 8000 &' >> /app/entrypoint.sh && \
     echo 'cd /app/frontend' >> /app/entrypoint.sh && \

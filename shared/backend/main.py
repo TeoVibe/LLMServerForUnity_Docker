@@ -7,6 +7,13 @@ import psutil
 import os
 import requests
 import logging
+import sys
+from pathlib import Path
+
+# Add the current directory to the path so we can import firewall
+current_dir = Path(__file__).parent
+sys.path.append(str(current_dir))
+import firewall
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -37,8 +44,18 @@ async def log_requests(request: Request, call_next):
 server_process = None
 log_file = "/app/server_logs.txt"
 
-# Initialize allowlist from environment variable or default to "0.0.0.0"
-allowlist = os.environ.get("ALLOWLIST", "0.0.0.0")
+# Initialize allowlists from environment variables or default to "0.0.0.0"
+control_panel_allowlist = os.environ.get("CONTROL_PANEL_ALLOWLIST", "0.0.0.0")
+llm_server_allowlist = os.environ.get("LLM_SERVER_ALLOWLIST", "0.0.0.0")
+
+# Initialize firewall on startup
+try:
+    logger.info("Setting up initial firewall rules...")
+    logger.info(f"Control Panel Allowlist: {control_panel_allowlist}")
+    logger.info(f"LLM Server Allowlist: {llm_server_allowlist}")
+    firewall.setup_firewall_rules(control_panel_allowlist, llm_server_allowlist)
+except Exception as e:
+    logger.error(f"Failed to initialize firewall: {e}")
 
 # -----------------------
 # Server Endpoints
@@ -202,19 +219,25 @@ async def list_models():
 # -----------------------
 @app.get("/allowlist/")
 async def get_allowlist():
-    return {"allowlist": allowlist}
+    return {
+        "control_panel_allowlist": control_panel_allowlist,
+        "llm_server_allowlist": llm_server_allowlist
+    }
 
-@app.post("/update-allowlist/")
-async def update_allowlist(data: dict):
-    global allowlist
-    
-    new_allowlist = data.get("allowlist")
-    if not new_allowlist:
-        raise HTTPException(status_code=400, detail="New allowlist must be provided")
-    
-    # Validate IP format (basic validation)
+@app.get("/firewall-rules/")
+async def get_firewall_rules():
+    """Get the current firewall rules"""
+    rules = firewall.get_current_rules()
+    return {
+        "rules": rules,
+        "control_panel_allowlist": control_panel_allowlist,
+        "llm_server_allowlist": llm_server_allowlist
+    }
+
+def validate_ip_list(ip_list: str):
+    """Validate a comma-separated list of IPs"""
     try:
-        ips = new_allowlist.split(",")
+        ips = ip_list.split(",")
         for ip in ips:
             ip = ip.strip()
             octets = ip.split(".")
@@ -224,13 +247,54 @@ async def update_allowlist(data: dict):
                 value = int(octet)
                 if value < 0 or value > 255:
                     raise ValueError("Invalid IP value")
+        return True
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid IP format: {str(e)}")
+
+@app.post("/update-allowlist/")
+async def update_allowlist(data: dict):
+    global control_panel_allowlist, llm_server_allowlist
     
-    # Update the allowlist
-    allowlist = new_allowlist
+    # Update control panel allowlist if provided
+    if "control_panel_allowlist" in data:
+        new_control_panel_allowlist = data.get("control_panel_allowlist")
+        if new_control_panel_allowlist:
+            validate_ip_list(new_control_panel_allowlist)
+            control_panel_allowlist = new_control_panel_allowlist
+            logger.info(f"Updated control panel allowlist: {control_panel_allowlist}")
     
-    # In a real-world scenario, we'd update some configuration file or restart services
-    # Here we just update the in-memory variable
+    # Update LLM server allowlist if provided
+    if "llm_server_allowlist" in data:
+        new_llm_server_allowlist = data.get("llm_server_allowlist")
+        if new_llm_server_allowlist:
+            validate_ip_list(new_llm_server_allowlist)
+            llm_server_allowlist = new_llm_server_allowlist
+            logger.info(f"Updated LLM server allowlist: {llm_server_allowlist}")
     
-    return {"status": "Allowlist updated successfully", "allowlist": allowlist}
+    # For backward compatibility
+    if "allowlist" in data:
+        new_allowlist = data.get("allowlist")
+        if new_allowlist:
+            validate_ip_list(new_allowlist)
+            # Update both allowlists for backward compatibility
+            control_panel_allowlist = new_allowlist
+            llm_server_allowlist = new_allowlist
+            logger.info(f"Updated both allowlists via legacy endpoint: {new_allowlist}")
+    
+    # Apply firewall rules with updated allowlists
+    success = firewall.setup_firewall_rules(control_panel_allowlist, llm_server_allowlist)
+    if not success:
+        logger.error("Failed to apply firewall rules")
+        return {
+            "status": "Allowlist updated but firewall rules failed to apply", 
+            "control_panel_allowlist": control_panel_allowlist,
+            "llm_server_allowlist": llm_server_allowlist,
+            "firewall_rules_applied": False
+        }
+    
+    return {
+        "status": "Allowlist updated successfully and firewall rules applied", 
+        "control_panel_allowlist": control_panel_allowlist,
+        "llm_server_allowlist": llm_server_allowlist,
+        "firewall_rules_applied": True
+    }

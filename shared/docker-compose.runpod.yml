@@ -5,7 +5,7 @@ services:
     build:
       context: ..
       dockerfile: shared/Dockerfile.runpod
-    image: teocholakov/undreamai_server:v1.1.0-runpod
+    image: teocholakov/undream_server:v1.1.0-runpod
     container_name: undreamai_server
     network_mode: host
     ports:
@@ -17,7 +17,9 @@ services:
       - ./models:/models 
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
-      - ALLOWLIST=0.0.0.0
+      - CONTROL_PANEL_ALLOWLIST=${CONTROL_PANEL_ALLOWLIST:-0.0.0.0}
+      - LLM_SERVER_ALLOWLIST=${LLM_SERVER_ALLOWLIST:-0.0.0.0}
+      - ALLOWLIST=${ALLOWLIST:-0.0.0.0}
     deploy:
       resources:
         reservations:
