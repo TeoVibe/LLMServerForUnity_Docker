@@ -18,7 +18,7 @@ This repository contains Docker configurations for running the UndreamAI LLM ser
 ## Roadmap
 
 - Port IP Whitelisting for RunPod.
-- Frontend improvements
+- Frontend improvements; managing models
 - 1.2.3 server version fix
 
 ## Related Links

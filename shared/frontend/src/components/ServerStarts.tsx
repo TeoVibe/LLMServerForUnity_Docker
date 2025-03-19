@@ -7,7 +7,8 @@ function ServerStats() {
 
     useEffect(() => {
         const fetchStats = async () => {
-            const res = await fetch('http://localhost:8000/stats/');
+            // Use relative URL instead of hardcoded localhost
+            const res = await fetch('/api/stats/');
             const data = await res.json();
             setStats(data);
         };
